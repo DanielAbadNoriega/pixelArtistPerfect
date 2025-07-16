@@ -1,0 +1,56 @@
+html, body {
+    margin: 0;
+    padding: 0 5px 5px;
+    font-size: 12px;
+    min-width: 330px;
+    font-family: Verdana, Arial, Helvetica, sans, sans-serif;
+    color: #555;
+}
+h1 {
+    font-size: 1.3em;
+}
+h3 {
+    font-size: 1.1em;
+    font-weight: normal;
+    color: #444;
+    padding-left: 10px;
+}
+
+.color_preview {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: lightgreen;
+}
+.color_preview.aqua {
+    background-color: aqua;
+}
+.color_preview.blue {
+    background-color: blue;
+}
+.color_preview.green {
+    background-color: green;
+}
+.color_preview.yellow {
+    background-color: yellow;
+}
+.color_preview.orange {
+    background-color: orange;
+}
+.color_preview.red {
+    background-color: red;
+}
+.color_preview.pink {
+    background-color: pink;
+}
+
+.row {
+    margin: 10px 0;
+    padding: 0;
+}
+
+#clearGuideLines {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}

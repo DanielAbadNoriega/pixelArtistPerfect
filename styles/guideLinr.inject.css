@@ -1,0 +1,230 @@
+.guideLinr-line {
+    position: absolute;
+    display: none;
+    overflow: hidden;
+    z-index: 999999997;
+    outline: none;
+    -webkit-transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease;
+}
+.guideLinr-line:after {
+    content: ' ';
+    position: absolute;
+    -webkit-transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease;
+}
+.guideLinr-line:hover:after, .guideLinr-line.glow:after {
+    box-shadow: 0px 0px 10px 0px lime;
+}
+
+/* #### VERTICAL #### */
+.guideLinr-line.vert {
+    top: 0;
+    width: 9px;
+    height: 100%;
+    cursor: e-resize;
+}
+.guideLinr-line.vert:after {
+    top: 0;
+    width: 0;
+    left: 49.5%;
+    height: 100%;
+    border-left: 1px solid lime;
+}
+
+/* #### HORIZONTAL #### */
+.guideLinr-line.horz {
+    left: 0;
+    height: 9px;
+    width: 100%;
+    cursor: n-resize;
+}
+.guideLinr-line.horz:after {
+    left: 0;
+    height: 0;
+    top: 49.5%;
+    width: 100%;
+    border-top: 1px solid lime;
+}
+
+
+/* #### COLORS #### */
+.guideLinr-line.aqua:after {
+    border-color: aqua;
+}
+.guideLinr-line.aqua:hover:after, .guideLinr-line.aqua.glow:after {
+    box-shadow: 0px 0px 10px 0px aqua;
+}
+.guideLinr-line.blue:after {
+    border-color: blue;
+}
+.guideLinr-line.blue:hover:after, .guideLinr-line.blue.glow:after {
+    box-shadow: 0px 0px 10px 0px blue;
+}
+.guideLinr-line.green:after {
+    border-color: green;
+}
+.guideLinr-line.green:hover:after, .guideLinr-line.green.glow:after {
+    box-shadow: 0px 0px 10px 0px green;
+}
+.guideLinr-line.yellow:after {
+    border-color: yellow;
+}
+.guideLinr-line.yellow:hover:after, .guideLinr-line.yellow.glow:after {
+    box-shadow: 0px 0px 10px 0px yellow;
+}
+.guideLinr-line.orange:after {
+    border-color: orange;
+}
+.guideLinr-line.orange:hover:after, .guideLinr-line.orange.glow:after {
+    box-shadow: 0px 0px 10px 0px orange;
+}
+.guideLinr-line.red:after {
+    border-color: red;
+}
+.guideLinr-line.red:hover:after, .guideLinr-line.red.glow:after {
+    box-shadow: 0px 0px 10px 0px red;
+}
+.guideLinr-line.pink:after {
+    border-color: hotpink;
+}
+.guideLinr-line.pink:hover:after, .guideLinr-line.pink.glow:after {
+    box-shadow: 0px 0px 10px 0px hotpink;
+}
+
+
+/* #### DIALOG #### */
+.guideLinr-dialog {
+    position: absolute;
+    background-color: white;
+    border-radius: 3px;
+    box-shadow: 0 0 5px 0px #444;
+    z-index: 999999999;
+}
+.guideLinr-dialog:hover {
+    box-shadow: 0 0 5px 1px #333;
+}
+.guideLinr-dialog:after {
+    content: ' ';
+    height: 0;
+    width: 0;
+    line-height: 0;
+    font-size: 0;
+    overflow: hidden;
+    clear: both;
+}
+.guideLinr-icon {
+    width: 16px;
+    height: 16px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    display: block;
+    margin: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.guideLinr-icon:hover {
+    opacity: 1;
+}
+
+.guideLinr-dialog.vert .guideLinr-icon {
+    margin: 8px 4px;
+}
+.guideLinr-dialog.horz .guideLinr-icon {
+    float: left;
+    margin: 4px 6px;
+}
+.guideLinr-icon.delete {
+    /* ## OLD BW ICONS
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABYklEQVQ4T63TyyuEURjHceOWYiuxsDIl14kFVi5DFvgP7BRRLuX/ICWXhaW/wFjMiGYnFq4jUjbKLXZGikm+Pz2nDvNaTJz69JznvOc873ve97yhvOzWzNAIOlFpl++ISazhxF8S8pJi+gsYRX5AYQ19YBXTeNeAK6DFMfTh1SatE6+sUA1x2IqXEBMYwpsrsEIyhhsM4PiXJ4gwvokqLGNCBZpwaI/UYf024jW0dzW9i2rsoQW7KEREBbTvKSxiEq3YwS26oTnKVaQHB1jCuNbq4hnqoLvu20QtqMW5FVD/wgreE9vtKVIq8Iwy80JUK8c2Gi0/JUbxaLnma11aBdIoDSiwxZjOhNoR9IWeggr83EKF3b2e6G8hRd6LB3zbwp9fYoM9YoaYy2cs0BbdQZonmUEuB2mO+bOuQBHJBvrhH2W9fTUdNv8ox8kHkfm3n8lu9BXc79xFP2wXLolJZP3Onw3BYxX5uyGsAAAAAElFTkSuQmCC);
+    https://www.iconfinder.com/icons/106227/close_icon#size=16 */
+
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACnklEQVQ4T4WTS0hUYRTH/9/c0XkkhoqPjFGRwtcYFr7GLGdUCnruHIjcRIvKFoGLaNOiTbQQWmi1iDZGMO56gqHOWOb4wiTHF4WoQ5MPRkls5o7OvbfzXZ2hRsEDH1y+c/6/77wuQ4y5qgraFFm+BgX6qItBZBrNC2v/VFNsPItc9FaZz8jSVqfJWoe0E6WIT0oCuFcBNtfWsDw6Aq+rGxoh7mxNv+djRKcCuFgTJ3Sar9+A3qBDYPATwguzCC/7oE3LhDYrF8aK0xCDIXieP4O8JUUhKsBZkaccv9MMYeknAl1vQZmACQJ5tlNQJIm/DGP9RUjph/H1cQtsgzOqlrmqitpMtfW3MjJSsfGhA6BAqpc80eqIQRBZBgiccK4Bi4sr8PZ0PbH2TzSxHku+WN58Txd69RRK4M92IC98lzEVzIwHoLtyE0MtD0O17mk9c1oKFUvjVQTeO5D0bmwP4f9XaxdKYDxvh7v9JWzuScacJ4uUylOVCE2M4eCbkX0Bvy+VQldUgoHPA7B9mSBAtVmxFOdhy7+CBEfvvoANew3iUlLhHp+Brc/DWHe1OVSRnxsvKDKkYAAIh9Wm7W4BNVWrhWAwQmIaDE7Pbtb1eXTMUV7gKMs51GBKT4VEYoWL9+4hDYZBIIh3aQXDc7867ENTdj6rLCpjvqy4EHq9DjJNQYXEGBdraAqiGMLw+CRPP5tCFtRh3y8wNdWnJbeWHiuEwWDYHiWf/c4q8Z3gIwwGgxj5Nomu5dXbD6a8beoi7TyUSJBGa3Ji65GcbGRmpkPQ07+0Q5BEET7fEn7MzcO1us7F7aRb/xfAvxPpHO0oz7ubotVepkfjIwBKZtMfDr9uGJp5RDHfI+JYQKTqLPpIoUP7HDW+nn5ec2xv/gKyTwIgR4s7eAAAAABJRU5ErkJggg==);
+    /* https://www.iconfinder.com/icons/35972/delete_icon#size=16 */
+}
+.guideLinr-icon.rotate {
+    /* ## OLD BW ICONS
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAwklEQVQ4T2NkoBAwUqifAZ8B+kDDBZAsOIjNMmwG2AMVLgBiBTQNH4D8CUDcCMTzgTgRJI9uQDxUMz6fPYAaDtaLbADIyRfQdB4A8kE2O6B5B64X2YD1QNEAqAEgW0Dsi1A+P9RwZG9huOA/ku0gG5EDDeTnBDTXoRgAsgHkVBAA0YJoinFyYV5ANgDuP2IMQQ6D90gBBXLuQlINQPbnBqDmQFINkIeGNCgGQIH4kVQDQOpBhoACkSjNJAUWLtdQnBsBSzcdEWNKxPcAAAAASUVORK5CYII=);
+    https://www.iconfinder.com/icons/49859/arrow_redo_rotate_icon#size=16 */
+
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACl0lEQVQ4T42TbUjTURTGf9sSC0VzBFlTikRCMDVmZCFi5ussKPxQ4YcgiELo5YOZEhG9kJIj0wgCUaIXpA+VEFPTCEotKMEmVNqysHyh+TK3snRtreNft/77EHThwrnnnufhPM+9R4Nq5VYTptPQ4PWyx+sDn2yNBrQwq9NibivjtLp+PpbrhbXDzDG3lytJMevZlVJErH6NZIVBSr5MDdH8+h7W4YHRjpMY1CQKQaGZPI+XtvzkLEzJOYw4upia6RWoRih86MM2YohKp8XaQav1yWi7ikQhKDDjTjCsCynOyME23sTYlAvrIPzyQMgSSIqDVVERxK/Yx53OdgaGP11oWZSjEJiq8R0vKsLFY0bHnbR3wcQHLk7YsEYaiI3egDl7K6zURxJBFlebH8w9KmdpwIPCapy/fUTIRiuUkzbKX9bTIAUzskPTDlOakMapDCGJFjk1N3tpr1jwz29issTSbGB9lMjhPxkPkB6XSqcpC5aFLOeuZZr7R4MJAsgCkSNdfLWUEu1P5p6jZLWBa5mbQKeD2w9BJAR1oNRur8RXu/8Gly3naTw4qBTkV3EoMlx/fW96Gs65Fr7PguUF7tZyQtUSyBbwmd2V2F019A7Z6RoQ8SGQFr+ZzIREPk82ij8+nvbDuz6qu2spCxAUXMJ3xFSCy9PE9E8HW9aelWKv4tCMe4x+e73yI9+IM302xtsqSBSwPYigOKcQTfgzAXxTxGlF6/yLaOQfO6cF+BZGRhVwtlz3+f3xv4Ixt4qenZkp6GPeY5/8Qc8r8MhHcshbCJfbNUZddx231OAgD+RgzBOSbel6Op+7sJR5UlXPOj8Uw/62Vfm/w7SYNMpQ9cgUuiwniFQX/isOTKOqwCixNI/1fwj+AJzz6BEk/0jaAAAAAElFTkSuQmCC);
+    /* https://www.iconfinder.com/icons/35691/arrow_clockwise_rotate_icon#size=16 */
+}
+.guideLinr-icon.color {
+    /* ## OLD BW ICONS
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAUUlEQVQ4T2NkYGDYD8QOQEwO2McI1PWfHJ0wPcgGgNikALDFNDGAkJdgLsXpAooNIDYcaOeCUS8QGwfQLEDVlEi83UgqQS44DMQ2ZOlmYDgEALY6I4EWt2w7AAAAAElFTkSuQmCC);
+    https://www.iconfinder.com/icons/106200/menu_icon#size=16 */
+
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADDElEQVQ4T4VTbUiTURR+7rvNqflRmZouS00aalNTy75Qy8z9CDFNLISEftWPvnT1o0gKon4YEtHHj4iosCCqzUbU0kZBkjpMqmWamajT1Gqm07nNd+/tGBhSUvfeB95zzznPvfd5z2GYNfQVmjQmSTpw7OScQ+7jC4XSD5NjdkAQbExgVQXV1guzc9iMYShf+TY4IkYToc5AUIQaysBF4F4OSACjOWG3od9aj6FOCwSFkJdfZX06nfuLwFChscXlFKpUyZvgHO4FxkyIFGpg5/nwzONYnGrEeG8e3D8OweMcwusHFyDxqdL8c+9us9ojmrvRG7YVh360IuCqESNluViqrQNcxOwhbCJ4CTKg40oxQuOzwP1C0KyvxjevO4AZyhP5xv2nodQWQlL6gk8yjF7Kw9JAPQacu+Cr6sNC9UuMtm/Ep75QPI7WI9O+FeGf09FhMd5lT05mco02G9z8CkE3nmOsbDMc8YvAPByMJGDTGkgMPl4Zbq2/CSXZIt2m3FUL07XjYC/OF/EVq6IxOW4Dl5GHhGOiBC5yDHZ/pX03ZLS/LCoCw8sdsKgeY12/FqksHab7erBHR1N4UnYCBAqiP0cgAnpyX/sA2toG9YbWoRvZK0Iy1ySGlacnR+GhNwElnQWoijVjdcNlsNMlcZVJUQGnJIlDJhfgH+iHWE0Uuq19qDF3Z10zf2k6uHVJSmFmTOO6tYvh8+YYCeoG5P5o6Nnx67AQQvRMPVSXqnevTg47oAiKQe/7pqMKKB6ImDqmzsjdExc5DP2IGqU923FWVYcMy3XX70KaIajcEZuzOTW8PqVIhzbTHbicE5gfuQzqrHy4umowj2RSKhi6PwyisaW/7i8CIvI36pImtuzdB9mC5GlRSFg3FVIdvK4hyOVyiC4RlietqLjdqZmLAIbDGp5blgXR46G2mBaVwgQZLTm+dA6io6ULrV2jJyrvdZ2Zk+ChLoUHhwVDEr2UTrmMwWF3QJySMClKzc/avl8kcR+Ryz4nATnSZnfcH98Osm0E5+9m+kfwf10/ATd/MoMmzp3sAAAAAElFTkSuQmCC);
+    /* https://www.iconfinder.com/icons/36319/palette_icon#size=16 */
+}
+
+.guideLinr-icon.lime { background-color: lime; }
+.guideLinr-icon.aqua { background-color: aqua; }
+.guideLinr-icon.blue { background-color: blue; }
+.guideLinr-icon.green { background-color: green; }
+.guideLinr-icon.yellow { background-color: yellow; }
+.guideLinr-icon.orange { background-color: orange; }
+.guideLinr-icon.red { background-color: red; }
+.guideLinr-icon.pink { background-color: pink; }
+
+
+.guideLinr-distance, .guideLinr-distance.lime {
+  position: fixed;
+  text-align: center;
+  z-index: 999999998;
+  font-family: Verdana, Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  cursor: default;
+  opacity: 0.2;
+  
+  overflow: hidden;
+  color: white;
+  text-shadow: 0px 0px 5px black;
+  background-color: lime;
+}
+.guideLinr-distance:hover {
+  opacity: 0.7;
+}
+.guideLinr-distance.aqua {
+    background-color: aqua;
+}
+.guideLinr-distance.blue {
+    background-color: blue;
+}
+.guideLinr-distance.green {
+    background-color: green;
+}
+.guideLinr-distance.yellow {
+    background-color: yellow;
+}
+.guideLinr-distance.orange {
+    background-color: orange;
+}
+.guideLinr-distance.red {
+    background-color: red;
+}
+.guideLinr-distance.pink {
+    background-color: pink;
+}
+
+
+.guideLinr-distance.horz {
+    width: 15px;
+}
+.guideLinr-distance.horz span {
+    height: 0;
+    width: 0;
+    overflow: visible;
+
+    position: absolute;
+    left: 0;
+    vertical-align: top;
+    -webkit-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+}
+
+.guideLinr-element-highlight {
+    outline: 2px solid lightgreen !important;
+    box-shadow: 0px 0px 5px 3px lightgreen !important;
+}
