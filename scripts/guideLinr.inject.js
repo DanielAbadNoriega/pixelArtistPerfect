@@ -145,7 +145,7 @@
     };
     line.prototype = {
         save: function() {
-            chrome.extension.sendRequest(
+            chrome.runtime.sendMessage(
                 {
                     method: "saveGuide"
                     , url: location.href
@@ -376,7 +376,7 @@
 
         , destroy: function() {
 
-            chrome.extension.sendRequest(
+            chrome.runtime.sendMessage(
                 {
                     method: "removeGuide"
                     , url: location.href

@@ -1,32 +1,42 @@
 {
-   "background": {
-      "scripts": [ "scripts/guideLinr.background.js" ]
-   },
-   "browser_action": {
-      "default_icon": "images/16.png",
-      "default_popup": "interface.html",
-      "default_title": "guideLinr",
-      "permissions": [ "tabs", "http://*/*", "https://*/*" ]
-   },
-   "content_scripts": [ {
-      "css": [ "styles/guideLinr.inject.css" ],
-      "js": [ "scripts/jquery-1.10.2.min.js", "scripts/guideLinr.inject.js" ],
-      "matches": [ "http://*/*", "https://*/*" ]
-   } ],
-   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-   "description": "Photoshop-like guide lines for any page",
-   "icons": {
-      "128": "images/128.png",
-      "16": "images/16.png",
-      "24": "images/24.png",
-      "32": "images/32.png",
-      "48": "images/48.png",
-      "64": "images/64.png"
-   },
-   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx7LyfoDI3UFWXxRXW7B+z2XnmEfy/RzYql3VDURXULRkTD2GSmf2p/FmO+FWBkvmkO96LkJWK2n39oK83bg/dHM/8sA2jehC0IaKln+hU94ptO/IWkl3Mn0Q603Y52PU6meKEzBcI0e5mxgVGmBVsHUjyfhuyeoT1AXc2Vn1CTKYIHFpkTFFv5CL3+Y10YPDNzLck49FeOoO137EWaIMz6LLN26ncBhoIzuOcKlVqfDp4tXYQ2ib9ebQhdGVYrZfTgeGvuDKrdkgwqD1E4X/nsbYPHvb0J7yJ3I7+6JqIIC/VGLgI5BH8eLUdgYJH5gN4iOg6F4k4dN89xIOxYx8cwIDAQAB",
-   "manifest_version": 2,
-   "name": "guideLinr",
-   "permissions": [ "tabs", "contextMenus", "http://*/*", "https://*/*", "*://*/*" ],
-   "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1.1.0"
+  "manifest_version": 3,
+  "name": "guideLinr",
+  "version": "1.1.0",
+  "description": "Photoshop-like guide lines for any page",
+  "action": {
+    "default_icon": "images/16.png",
+    "default_popup": "interface.html",
+    "default_title": "guideLinr"
+  },
+  "icons": {
+    "16": "images/16.png",
+    "24": "images/24.png",
+    "32": "images/32.png",
+    "48": "images/48.png",
+    "64": "images/64.png",
+    "128": "images/128.png"
+  },
+  "background": {
+    "service_worker": "scripts/guideLinr.background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": [
+        "scripts/jquery-1.10.2.min.js",
+        "scripts/guideLinr.inject.js"
+      ],
+      "css": ["styles/guideLinr.inject.css"]
+    }
+  ],
+  "permissions": [
+    "tabs",
+    "scripting",
+    "activeTab",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
 }
