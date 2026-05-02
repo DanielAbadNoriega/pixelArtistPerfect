@@ -22,7 +22,7 @@
                 <div class="popup-info-block">
                     <h2>Atajos</h2>
                     <ul id="commandList" class="command-list"></ul>
-                    <p class="popup-note">Atajos rápidos sobre la página: <strong>Alt/Option + Shift + I</strong> limpia verticales, <strong>+ L</strong> limpia horizontales y <strong>+ D</strong> activa el modo borrar una guía.</p>
+                    <p class="popup-note">Atajos rápidos sobre la página: <strong>Alt/Option + Shift + I</strong> limpia verticales, <strong>+ L</strong> limpia horizontales y <strong>+ D</strong> activa el borrado múltiple.</p>
                     <p class="popup-note">Los atajos sin asignar los puedes configurar en <code>chrome://extensions/shortcuts</code>.</p>
                 </div>
                 <div class="popup-info-block">
@@ -50,7 +50,7 @@
             </section>
 
             <section class="popup-card popup-card-collapsible">
-                <details class="popup-accordion">
+                <details class="popup-accordion" id="behaviorAccordion">
                     <summary class="popup-accordion-summary">
                         <span class="popup-accordion-copy">
                             <strong>Comportamiento</strong>
@@ -123,7 +123,7 @@
             </section>
 
             <section class="popup-card popup-card-collapsible">
-                <details class="popup-accordion">
+                <details class="popup-accordion" id="actionsAccordion">
                     <summary class="popup-accordion-summary">
                         <span class="popup-accordion-copy">
                             <strong>Acciones rápidas</strong>
@@ -134,13 +134,13 @@
 
                     <div class="popup-accordion-body">
                         <div class="popup-actions-grid">
-                            <button type='button' id='openFloatingControls' class="popup-button">Mostrar / ocultar rueda flotante</button>
-                            <button type='button' id='toggleDeleteMode' class="popup-button">Borrar una guía</button>
                             <button type='button' id='addGuideLineVert' class="popup-button popup-button-primary">Añadir vertical</button>
                             <button type='button' id='addGuideLineHorz' class="popup-button popup-button-primary">Añadir horizontal</button>
+                            <button type='button' id='toggleDeleteMode' class="popup-button">Borrado múltiple</button>
                             <button type='button' id='clearGuideLines' class="popup-button popup-button-danger">Limpiar página</button>
                             <button type='button' id='clearGuideLinesVert' class="popup-button">Limpiar verticales</button>
                             <button type='button' id='clearGuideLinesHorz' class="popup-button">Limpiar horizontales</button>
+                            <button type='button' id='openFloatingControls' class="popup-button popup-button-wide">Mostrar / ocultar rueda flotante</button>
                         </div>
                     </div>
                 </details>

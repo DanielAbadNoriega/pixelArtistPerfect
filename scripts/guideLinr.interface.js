@@ -52,7 +52,7 @@ $(function() {
         , 'clear-all-guides': 'Limpiar toda la página'
         , 'clear-vertical-guides': 'Limpiar todas las verticales'
         , 'clear-horizontal-guides': 'Limpiar todas las horizontales'
-        , 'toggle-delete-mode': 'Activar modo borrar una guía'
+        , 'toggle-delete-mode': 'Activar borrado múltiple'
     };
 
     var isValidCssColor = function( value ) {
@@ -105,6 +105,7 @@ $(function() {
             this.settings = await this.getSettings();
             this.render();
             this.renderCommands();
+            this.syncUiState();
         }
         , cacheDom: function() {
             this.$addGuideLineVert = $('#addGuideLineVert');
@@ -125,6 +126,7 @@ $(function() {
             this.$toggleInfo = $('#toggleInfo');
             this.$infoPanel = $('#infoPanel');
             this.$commandList = $('#commandList');
+            this.$actionsAccordion = $('#actionsAccordion');
         }
         , buildSwatches: function() {
             this.$colorSwatches.empty();
@@ -256,6 +258,35 @@ $(function() {
                     });
             });
         }
+        , requestCurrentTabState: function( callback ) {
+            chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+                if ( !tabs[0] || !/^https?:/.test( tabs[0].url || '' ) ) {
+                    callback && callback({});
+                    return;
+                }
+
+                chrome.tabs.sendMessage( tabs[0].id, { method: 'getUiState' }, function(response) {
+                    if ( chrome.runtime.lastError ) {
+                        callback && callback({});
+                        return;
+                    }
+                    callback && callback(response || {});
+                });
+            });
+        }
+        , syncUiState: function() {
+            this.requestCurrentTabState(function( state ) {
+                this.renderDeleteModeState( !!state.deleteModeActive );
+            }.bind(this));
+        }
+        , renderDeleteModeState: function( isActive ) {
+            this.$toggleDeleteMode
+                .toggleClass( 'active', !!isActive )
+                .text( isActive ? 'Cancelar borrado múltiple' : 'Borrado múltiple' );
+
+            if ( isActive )
+                this.$actionsAccordion.prop( 'open', true );
+        }
         , persistSelectedColor: function( color ) {
             var normalized = normalizeCssColor( color );
             this.saveSetting( 'selectedColor', normalized );
@@ -314,9 +345,23 @@ $(function() {
             });
         }
         , toggleDeleteMode: function() {
-            this.sendMessageCurrentTab({
-                method: 'toggleDeleteMode'
-            });
+            chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+                if ( !tabs[0] || !/^https?:/.test( tabs[0].url || '' ) )
+                    return;
+
+                chrome.tabs.sendMessage( tabs[0].id, {
+                    method: 'toggleDeleteMode'
+                }, function(response) {
+                    if ( chrome.runtime.lastError )
+                        return;
+
+                    var isActive = !!( response && response.deleteModeActive );
+                    this.renderDeleteModeState( isActive );
+
+                    if ( isActive )
+                        window.close();
+                }.bind(this));
+            }.bind(this));
         }
         , toggleFloatingControls: function() {
             this.sendMessageCurrentTab({

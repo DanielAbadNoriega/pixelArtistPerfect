@@ -394,7 +394,6 @@
                 if ( this._dialog )
                     this._dialog.destroy();
                 this.destroy();
-                deleteMode.deactivate();
                 return;
             }
 
@@ -815,7 +814,7 @@
         , render: function() {
             this.$badge = $('<div>')
                 .addClass('guideLinr-delete-badge')
-                .text('Modo borrar activo · haz clic en una guía · Esc cancela')
+                .text('Borrado múltiple activo · haz clic en las guías que quieras quitar · Esc cancela')
                 .appendTo( document.body )
                 .hide();
         }
@@ -845,7 +844,6 @@
             ev.stopPropagation();
             this.suppressMenus();
             guide.destroy();
-            this.deactivate();
         }
         , isActive: function() {
             return !!this.active;
@@ -1364,8 +1362,8 @@
                 .addClass('guideLinr-settings-help')
                 .append(
                     $('<p>').html('<strong>Atajos rápidos</strong>: usa los comandos de la extensión para crear guías, abrir estos ajustes y limpiar la página.')
-                    , $('<p>').html('<strong>Atajos sobre la página</strong>: <strong>Alt/Option + Shift + I</strong> limpia verticales · <strong>+ L</strong> horizontales · <strong>+ D</strong> activa el modo borrar.')
-                    , $('<p>').html('<strong>Borrar una guía</strong>: activa el modo borrar y haz clic en la guía que quieras quitar. <strong>Esc</strong> cancela.')
+                    , $('<p>').html('<strong>Atajos sobre la página</strong>: <strong>Alt/Option + Shift + I</strong> limpia verticales · <strong>+ L</strong> horizontales · <strong>+ D</strong> activa el borrado múltiple.')
+                    , $('<p>').html('<strong>Borrado múltiple</strong>: activa el modo y haz clic en las guías que quieras quitar. <strong>Esc</strong> cancela.')
                     , $('<p>').html('<strong>Menú contextual</strong>: agrega acciones al clic derecho para crear guías alrededor del elemento bajo el cursor.')
                     , $('<p>').html('<strong>Retícula de movimiento</strong>: hace que las guías se muevan en saltos fijos, por ejemplo cada 10 px.')
                     , $('<p>').html('<strong>Sensibilidad del imán a bordes</strong>: al arrastrar, la guía se pega a los bordes de elementos HTML de la página si pasas dentro del rango elegido.')
@@ -1454,7 +1452,7 @@
                         .append(
                             $('<button type="button" data-action="add-vert">').text('Añadir vertical')
                             , $('<button type="button" data-action="add-horz">').text('Añadir horizontal')
-                            , $('<button type="button" data-action="toggle-delete-mode" class="guideLinr-settings-delete-toggle">').text('Borrar una guía')
+                            , $('<button type="button" data-action="toggle-delete-mode" class="guideLinr-settings-delete-toggle">').text('Borrado múltiple')
                             , $('<button type="button" data-action="clear-guides" class="guideLinr-settings-button-danger">').text('Limpiar página')
                             , $('<button type="button" data-action="clear-vert">').text('Limpiar verticales')
                             , $('<button type="button" data-action="clear-horz">').text('Limpiar horizontales')
@@ -1691,7 +1689,7 @@
             this.$panel
                 .find('.guideLinr-settings-delete-toggle')
                 .toggleClass( 'active', deleteMode.isActive() )
-                .text( deleteMode.isActive() ? 'Cancelar borrado' : 'Borrar una guía' );
+                .text( deleteMode.isActive() ? 'Cancelar borrado múltiple' : 'Borrado múltiple' );
         }
         , clamp: function( value, min, max ) {
             return Math.max( min, Math.min( value, max ) );
@@ -1859,6 +1857,10 @@
         }
         , handleDeleteModeChanged: function( ev, isActive ) {
             this.renderDeleteModeState();
+            if ( isActive ) {
+                this.closePanel();
+                this.$help.removeClass('open');
+            }
         }
         , handleStorageChanged: function( changes, areaName ) {
             if ( areaName != 'local' )
@@ -1973,11 +1975,19 @@
             }
             , toggleDeleteMode: function() {
                 deleteMode.toggle();
+                settingsUi.renderDeleteModeState();
+                return {
+                    deleteModeActive: deleteMode.isActive()
+                };
+            }
+            , getUiState: function() {
+                return {
+                    deleteModeActive: deleteMode.isActive()
+                };
             }
         };
         
-        methods[request.method] && methods[request.method]();
-
-        sendResponse({}); // cause success callback
+        var response = methods[request.method] ? methods[request.method]() : {};
+        sendResponse(response || {}); // cause success callback
     });
 })();

@@ -504,6 +504,8 @@
 }
 .guideLinr-settings-icon-button:hover {
     background: rgba(15, 23, 42, 0.42);
+    border-color: rgba(255, 255, 255, 0.34);
+    transform: translateY(-1px);
 }
 .guideLinr-settings-title {
     font-size: 14px;
@@ -647,6 +649,11 @@
     padding: 8px 10px;
     font-size: 12px;
     font-family: inherit;
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
 }
 .guideLinr-settings-field select:focus,
 .guideLinr-settings-clear:focus,
@@ -726,12 +733,27 @@
     cursor: pointer;
     text-shadow: 1px 1px 2px black;
 }
+.guideLinr-settings-actions button:hover,
+.guideLinr-settings-clear:hover {
+    background: rgba(30, 41, 59, 0.54);
+    border-color: rgba(255, 255, 255, 0.34);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.24);
+}
 .guideLinr-settings-actions button.active {
     background: rgba(239, 68, 68, 0.38);
     border-color: rgba(248, 113, 113, 0.55);
 }
 .guideLinr-settings-button-danger {
     background: rgba(239, 68, 68, 0.24) !important;
+}
+.guideLinr-settings-button-danger:hover {
+    background: rgba(239, 68, 68, 0.34) !important;
+    border-color: rgba(248, 113, 113, 0.46);
+}
+.guideLinr-settings-actions button.active:hover {
+    background: rgba(239, 68, 68, 0.46);
+    border-color: rgba(248, 113, 113, 0.62);
 }
 .guideLinr-settings-shortcuts {
     margin-top: 10px;
@@ -763,6 +785,10 @@
 
 .guideLinr-delete-mode .guideLinr-line {
     cursor: crosshair;
+}
+.guideLinr-delete-mode,
+.guideLinr-delete-mode * {
+    cursor: crosshair !important;
 }
 .guideLinr-delete-mode .guideLinr-line:after {
     filter:
