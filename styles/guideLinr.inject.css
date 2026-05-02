@@ -4,7 +4,7 @@
     overflow: hidden;
     z-index: 999999998;
     outline: none;
-    color: #ef4444;
+    color: rgb(197, 10, 235);
     -webkit-transition: box-shadow 0.3s ease;
     transition: box-shadow 0.3s ease;
 }
@@ -186,34 +186,60 @@
   overflow: hidden;
   box-sizing: border-box;
   color: #f8fafc;
+  --guide-distance-tint-soft: rgba(255, 255, 255, 0.2);
+  --guide-distance-tint-strong: rgba(255, 255, 255, 0.28);
+  --guide-distance-border: rgba(255, 255, 255, 0.3);
+  --guide-distance-glow: rgba(255, 255, 255, 0.12);
+  --guide-distance-sheen: rgba(255, 255, 255, 0.12);
   text-shadow: 1px 1px 2px black;
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  background-color: var(--guide-distance-tint-soft);
+  background-image: linear-gradient(145deg, var(--guide-distance-tint-strong), var(--guide-distance-tint-soft));
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.24),
+    0 0 20px -10px var(--guide-distance-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px var(--guide-distance-border),
+    inset 0 12px 18px -18px var(--guide-distance-sheen);
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--guide-distance-border);
   transition: opacity 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .guideLinr-distance:hover {
   opacity: 1;
-  box-shadow: 0 8px 34px rgba(0, 0, 0, 0.14);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.28),
+    0 0 24px -8px var(--guide-distance-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px var(--guide-distance-border),
+    inset 0 12px 18px -18px var(--guide-distance-sheen);
 }
 .guideLinr-distance.editable {
   cursor: text;
 }
 .guideLinr-distance.editing {
   opacity: 1;
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.guideLinr-distance:not(.horz) {
+  height: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .guideLinr-distance .guideLinr-distance-label {
   display: inline-block;
   white-space: nowrap;
-  padding: 2px 6px;
+  padding: 4px 8px;
   font-weight: 600;
   letter-spacing: 0.01em;
 }
+.guideLinr-distance:not(.horz) .guideLinr-distance-label {
+  padding: 0 8px;
+  line-height: 1;
+}
 .guideLinr-distance.horz {
-    width: 18px;
+    width: 23px;
 }
 .guideLinr-distance.horz .guideLinr-distance-label {
     height: auto;
@@ -466,7 +492,7 @@
     height: 16px;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.4);
-    background-color: #ef4444;
+    background-color: rgb(197, 10, 235);
     flex: 0 0 auto;
 }
 .guideLinr-settings-color-preview.aqua { background-color: aqua; }

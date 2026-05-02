@@ -8,14 +8,20 @@
         return console.log.apply( console, args );
     };
 
-    var COLOR_VERSION = 2;
-    var LEGACY_DEFAULT_COLOR = '#84cc16';
+    var COLOR_VERSION = 4;
+    var DEFAULT_GUIDE_COLOR = 'rgb(197, 10, 235)';
+    var LEGACY_DEFAULT_COLORS = [
+        '#84cc16'
+        , 'rgb(132, 204, 22)'
+        , '#ef4444'
+        , 'rgb(239, 68, 68)'
+    ];
     var presetColors = [
-        { name: 'Rojo', value: '#ef4444' }
+        { name: 'Violeta', value: DEFAULT_GUIDE_COLOR }
+        , { name: 'Rojo', value: '#ef4444' }
         , { name: 'Verde', value: '#84cc16' }
         , { name: 'Amarillo', value: '#facc15' }
         , { name: 'Azul', value: '#60a5fa' }
-        , { name: 'Turquesa', value: '#22d3ee' }
     ];
     var colors = presetColors.map(function( preset ) {
         return preset.value;
@@ -26,7 +32,7 @@
         , doContextMenu: true
         , snapToPx: ''
         , snapToEls: ''
-        , selectedColor: '#ef4444'
+        , selectedColor: DEFAULT_GUIDE_COLOR
         , selectedColorVersion: COLOR_VERSION
         , settingsLauncherPosition: null
     };
@@ -54,6 +60,67 @@
         var canvas = document.createElement('canvas').getContext('2d');
         canvas.fillStyle = normalizeCssColor( value );
         return canvas.fillStyle || defaultSettings.selectedColor;
+    };
+
+    var colorToRgbParts = function( value ) {
+        var probe = $('<span>')
+                .css({
+                    position: 'absolute'
+                    , left: '-9999px'
+                    , top: '-9999px'
+                    , color: normalizeCssColor( value )
+                })
+                .appendTo( document.body )
+            , computed = probe.css('color')
+            , match = computed && computed.match( /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i )
+            , rgb = match
+                ? {
+                    r: parseInt( match[1], 10 )
+                    , g: parseInt( match[2], 10 )
+                    , b: parseInt( match[3], 10 )
+                }
+                : {
+                    r: 239
+                    , g: 68
+                    , b: 68
+                };
+
+        probe.remove();
+        return rgb;
+    };
+
+    var mixRgb = function( from, to, amount ) {
+        amount = Math.max( 0, Math.min( 1, amount ) );
+        return {
+            r: Math.round( from.r + ( ( to.r - from.r ) * amount ) )
+            , g: Math.round( from.g + ( ( to.g - from.g ) * amount ) )
+            , b: Math.round( from.b + ( ( to.b - from.b ) * amount ) )
+        };
+    };
+
+    var rgbToRgba = function( rgb, alpha ) {
+        return 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + alpha + ')';
+    };
+
+    var colorToRgba = function( value, alpha ) {
+        return rgbToRgba( colorToRgbParts( value ), alpha );
+    };
+
+    var normalizeColorString = function( value ) {
+        return String( value || '' ).toLowerCase().replace( /\s+/g, '' );
+    };
+
+    var shouldMigrateDefaultColor = function( value ) {
+        if ( !value )
+            return true;
+
+        var normalized = normalizeColorString( value );
+        for ( var i = 0, len = LEGACY_DEFAULT_COLORS.length; i < len; i++ ) {
+            if ( normalized == normalizeColorString( LEGACY_DEFAULT_COLORS[i] ) )
+                return true;
+        }
+
+        return false;
     };
 
     var lines = ({
@@ -827,6 +894,28 @@
             }
             this.cache = [];
         }
+        , applyBucketColorStyle: function( dist, color ) {
+            var base = colorToRgbParts( color )
+                , lighter = mixRgb( base, { r: 255, g: 255, b: 255 }, 0.18 )
+                , darker = mixRgb( base, { r: 15, g: 23, b: 42 }, 0.12 );
+
+            return dist.css({
+                '--guide-distance-tint-soft': rgbToRgba( darker, 0.34 )
+                , '--guide-distance-tint-strong': rgbToRgba( lighter, 0.58 )
+                , '--guide-distance-border': rgbToRgba( base, 0.72 )
+                , '--guide-distance-glow': rgbToRgba( base, 0.42 )
+                , '--guide-distance-sheen': rgbToRgba( lighter, 0.2 )
+                , 'background-color': rgbToRgba( base, 0.26 )
+                , 'background-image': 'linear-gradient(145deg, ' + rgbToRgba( lighter, 0.34 ) + ', ' + rgbToRgba( darker, 0.46 ) + ')'
+                , 'border-color': rgbToRgba( base, 0.58 )
+                , 'box-shadow': [
+                    '0 10px 24px rgba(0, 0, 0, 0.18)'
+                    , 'inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                    , 'inset 0 0 0 1px ' + rgbToRgba( base, 0.18 )
+                    , '0 0 18px -12px ' + rgbToRgba( base, 0.34 )
+                ].join(', ')
+            });
+        }
         , makeDistanceEditable: function( dist, size, targetGuide, moveDirection, placement ) {
             dist.append(
                 $('<span>')
@@ -882,7 +971,8 @@
                 , horzBuckets = this.getColorBuckets( ordered.horz );
 
             for ( var c = 0, clen = vertBuckets.length; c < clen; c++ ) {
-                var guides = vertBuckets[c].guides;
+                var guides = vertBuckets[c].guides
+                    , bucketColor = vertBuckets[c].color;
                 if ( guides.length ) {
                     for ( var i = -1, ilen = guides.length; i < ilen; i++ ) {
                         var pos1 = guides[i+1] ? guides[i+1].getPosition() : docWidth
@@ -900,6 +990,7 @@
                                 , top: top + 'px'
                                 , width: wid + 'px'
                             });
+                        this.applyBucketColorStyle( dist, bucketColor );
                         this.makeDistanceEditable( dist, wid, editableGuide, moveDirection )
                             .appendTo( document.body );
                         this.cache.push( dist );
@@ -909,7 +1000,8 @@
             }
 
             for ( var h = 0, hlen = horzBuckets.length; h < hlen; h++ ) {
-                var guides = horzBuckets[h].guides;
+                var guides = horzBuckets[h].guides
+                    , bucketColor = horzBuckets[h].color;
                 if ( guides.length ) {
                     for ( var i = -1, ilen = guides.length; i < ilen; i++ ) {
                         var pos1 = guides[i+1] ? guides[i+1].getPosition() : docHeight
@@ -927,6 +1019,7 @@
                                 , left: left + 'px'
                                 , height: hei + 'px'
                             });
+                        this.applyBucketColorStyle( dist, bucketColor );
                         this.makeDistanceEditable( dist, hei, editableGuide, moveDirection )
                             .appendTo( document.body );
                         this.cache.push( dist );
@@ -1193,7 +1286,7 @@
                                         .addClass('guideLinr-settings-color-row')
                                         .append(
                                             $('<input type="color" class="guideLinr-settings-color-picker">')
-                                            , $('<input type="text" class="guideLinr-settings-color-text" placeholder="#ef4444 o rgb(239, 68, 68)">')
+                                            , $('<input type="text" class="guideLinr-settings-color-text" placeholder="rgb(197, 10, 235) o #c50aeb">')
                                             , $('<span>')
                                                 .addClass('guideLinr-settings-color-preview')
                                         )
@@ -1273,11 +1366,7 @@
 
                 if ( storedSettings.selectedColorVersion !== COLOR_VERSION ) {
                     payload.selectedColorVersion = COLOR_VERSION;
-                    if (
-                        !storedSettings.selectedColor
-                        || String(storedSettings.selectedColor).toLowerCase() == LEGACY_DEFAULT_COLOR
-                        || String(storedSettings.selectedColor).toLowerCase() == 'rgb(132, 204, 22)'
-                    )
+                    if ( shouldMigrateDefaultColor( storedSettings.selectedColor ) )
                         payload.selectedColor = defaultSettings.selectedColor;
 
                     chrome.storage.local.set( payload );
@@ -1319,7 +1408,7 @@
             this.$colorText.val( this.settings.selectedColor );
             this.updateColorPreview( this.settings.selectedColor, true );
             this.$panel.find('.guideLinr-settings-swatch').removeClass('active').filter(function() {
-                return $(this).data('color') == colorToHex( normalizeCssColor( this.settings.selectedColor ) );
+                return colorToHex( $(this).data('color') ) == colorToHex( normalizeCssColor( this.settings.selectedColor ) );
             }.bind(this)).addClass('active');
             this.renderDeleteModeState();
 

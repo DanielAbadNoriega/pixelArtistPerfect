@@ -3,14 +3,20 @@
  */
 $(function() {
 
-    var COLOR_VERSION = 2;
-    var LEGACY_DEFAULT_COLOR = '#84cc16';
+    var COLOR_VERSION = 4;
+    var DEFAULT_GUIDE_COLOR = 'rgb(197, 10, 235)';
+    var LEGACY_DEFAULT_COLORS = [
+        '#84cc16'
+        , 'rgb(132, 204, 22)'
+        , '#ef4444'
+        , 'rgb(239, 68, 68)'
+    ];
     var presetColors = [
-        { name: 'Rojo', value: '#ef4444' }
+        { name: 'Violeta', value: DEFAULT_GUIDE_COLOR }
+        , { name: 'Rojo', value: '#ef4444' }
         , { name: 'Verde', value: '#84cc16' }
         , { name: 'Amarillo', value: '#facc15' }
         , { name: 'Azul', value: '#60a5fa' }
-        , { name: 'Turquesa', value: '#22d3ee' }
     ];
 
     var DEFAULT_SETTINGS = {
@@ -18,7 +24,7 @@ $(function() {
         , doContextMenu: true
         , snapToPx: ''
         , snapToEls: ''
-        , selectedColor: '#ef4444'
+        , selectedColor: DEFAULT_GUIDE_COLOR
         , selectedColorVersion: COLOR_VERSION
     };
 
@@ -72,6 +78,23 @@ $(function() {
         var canvas = document.createElement('canvas').getContext('2d');
         canvas.fillStyle = normalizeCssColor( value );
         return canvas.fillStyle || DEFAULT_SETTINGS.selectedColor;
+    };
+
+    var normalizeColorString = function( value ) {
+        return String( value || '' ).toLowerCase().replace( /\s+/g, '' );
+    };
+
+    var shouldMigrateDefaultColor = function( value ) {
+        if ( !value )
+            return true;
+
+        var normalized = normalizeColorString( value );
+        for ( var i = 0, len = LEGACY_DEFAULT_COLORS.length; i < len; i++ ) {
+            if ( normalized == normalizeColorString( LEGACY_DEFAULT_COLORS[i] ) )
+                return true;
+        }
+
+        return false;
     };
 
     ({
@@ -155,11 +178,7 @@ $(function() {
 
             if ( settings.selectedColorVersion !== COLOR_VERSION ) {
                 payload.selectedColorVersion = COLOR_VERSION;
-                if (
-                    !settings.selectedColor
-                    || String(settings.selectedColor).toLowerCase() == LEGACY_DEFAULT_COLOR
-                    || String(settings.selectedColor).toLowerCase() == 'rgb(132, 204, 22)'
-                )
+                if ( shouldMigrateDefaultColor( settings.selectedColor ) )
                     payload.selectedColor = DEFAULT_SETTINGS.selectedColor;
 
                 await chrome.storage.local.set( payload );
@@ -190,7 +209,7 @@ $(function() {
             this.$colorPreview.css( 'background-color', isValid ? normalized : 'transparent' );
 
             this.$colorSwatches.find('.popup-swatch').removeClass('active').filter(function() {
-                return $(this).data('color') == colorToHex( normalized );
+                return colorToHex( $(this).data('color') ) == colorToHex( normalized );
             }).addClass('active');
         }
         , renderCommands: function() {
