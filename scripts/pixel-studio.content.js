@@ -4,7 +4,7 @@
         return; // comment to allow logging!
 
         var args = Array.prototype.slice.call( arguments, 0 );
-        args.unshift( 'guideLinr :: ' );
+        args.unshift( 'pixel-studio :: ' );
         return console.log.apply( console, args );
     };
 

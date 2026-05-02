@@ -1,4 +1,4 @@
-/* guideLinr.js
+/* pixel-studio.popup.js
  * by: D.Carter
  */
 $(function() {

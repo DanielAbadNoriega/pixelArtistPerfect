@@ -17,16 +17,16 @@
     "128": "images/128.png"
   },
   "background": {
-    "service_worker": "scripts/guideLinr.background.js"
+    "service_worker": "scripts/pixel-studio.background.js"
   },
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
       "js": [
         "scripts/jquery-1.10.2.min.js",
-        "scripts/guideLinr.inject.js"
+        "scripts/pixel-studio.content.js"
       ],
-      "css": ["styles/guideLinr.inject.css"]
+      "css": ["styles/pixel-studio.content.css"]
     }
   ],
   "permissions": [
