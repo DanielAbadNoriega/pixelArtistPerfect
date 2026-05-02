@@ -361,6 +361,10 @@
         }
 
         , dialogMouseMove: function(ev) {
+            if ( deleteMode.isActive() ) {
+                clearTimeout( this._dialogTimer );
+                return;
+            }
             clearTimeout( this._dialogTimer );
             this._dialogTimer = setTimeout(function() {
                 if ( !this._dialog && !this._dragging )
@@ -371,6 +375,11 @@
             clearTimeout( this._dialogTimer );
         }
         , dialogContextMenu: function(ev) {
+            if ( deleteMode.shouldSuppressMenus() ) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                return false;
+            }
             if ( !this._dialog ) { // if right click
                 ev.preventDefault();
                 this._dialog = new dialog( this, ev );
@@ -381,6 +390,9 @@
             if ( deleteMode.isActive() ) {
                 ev.preventDefault();
                 ev.stopPropagation();
+                clearTimeout( this._dialogTimer );
+                if ( this._dialog )
+                    this._dialog.destroy();
                 this.destroy();
                 deleteMode.deactivate();
                 return;
@@ -518,21 +530,31 @@
             }
         }
 
-        , destroy: function() {
+        , destroy: function( options ) {
+            options = options || {};
+            clearTimeout( this._dialogTimer );
 
-            chrome.runtime.sendMessage(
-                {
-                    method: "removeGuide"
-                    , url: location.href
-                    , id: this._id
-                }
-                , function(response) {
-                    if ( !response.success )
-                        alert('Really sorry, but there was a problem saving something.  This line might show back up');
-                }
-            );
+            if ( !options.skipStorage ) {
+                chrome.runtime.sendMessage(
+                    {
+                        method: "removeGuide"
+                        , url: location.href
+                        , id: this._id
+                    }
+                    , function(response) {
+                        if ( chrome.runtime.lastError )
+                            return;
+
+                        if ( response && response.success === false )
+                            alert('Really sorry, but there was a problem saving something.  This line might show back up');
+                    }
+                );
+            }
 
             lines.remove( this );
+
+            if ( this._dialog )
+                this._dialog.destroy();
 
             $(document.body)
                 .off( 'mousemove', this._dragMouseMove )
@@ -754,12 +776,36 @@
     };
 
     var clearGuidesByDirection = function( dir ) {
+        var guides = lines.getAll( dir )
+            , ids = $.map( guides, function( guide ) {
+                return guide._id;
+            } );
+
         deleteMode.deactivate();
-        lines.clear( dir );
+
+        for ( var i = 0, len = guides.length; i < len; i++ )
+            guides[i].destroy({ skipStorage: true });
+
+        if ( !ids.length )
+            return 0;
+
+        chrome.runtime.sendMessage(
+            {
+                method: dir ? 'removeGuides' : 'clearGuides'
+                , url: location.href
+                , ids: ids
+            }
+            , function() {
+                void chrome.runtime.lastError;
+            }
+        );
+
+        return ids.length;
     };
 
     var deleteMode = ({
         active: false
+        , suppressMenusUntil: 0
         , init: function() {
             this.body = $(document.body);
             this.render();
@@ -775,7 +821,9 @@
         }
         , bindEvents: function() {
             this._onKeyDown = this.onKeyDown.bind(this);
+            this._onMouseDown = this.onMouseDown.bind(this);
             $(document).on( 'keydown', this._onKeyDown );
+            $(document).on( 'mousedown', this._onMouseDown );
         }
         , onKeyDown: function( ev ) {
             if ( this.active && ev.keyCode == 27 ) {
@@ -783,8 +831,30 @@
                 this.deactivate();
             }
         }
+        , onMouseDown: function( ev ) {
+            if ( !this.active )
+                return;
+
+            var $line = $(ev.target).closest('.guideLinr-line')
+                , guide = $line.data('guideLinrLine');
+
+            if ( !guide )
+                return;
+
+            ev.preventDefault();
+            ev.stopPropagation();
+            this.suppressMenus();
+            guide.destroy();
+            this.deactivate();
+        }
         , isActive: function() {
             return !!this.active;
+        }
+        , suppressMenus: function() {
+            this.suppressMenusUntil = Date.now() + 600;
+        }
+        , shouldSuppressMenus: function() {
+            return this.active || Date.now() < this.suppressMenusUntil;
         }
         , activate: function() {
             if ( this.active )
@@ -1184,6 +1254,12 @@
             this._clearDataAndHide();
         }
         , onContextMenu: function(ev) {
+            if ( deleteMode.shouldSuppressMenus() ) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                this.clearDataAndHide();
+                return false;
+            }
             log('STORED context menu details');
             this._target = $(ev.target);
             this._event = ev;
@@ -1783,8 +1859,6 @@
         }
         , handleDeleteModeChanged: function( ev, isActive ) {
             this.renderDeleteModeState();
-            if ( isActive )
-                this.openPanel();
         }
         , handleStorageChanged: function( changes, areaName ) {
             if ( areaName != 'local' )

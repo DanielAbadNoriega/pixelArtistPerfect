@@ -125,6 +125,33 @@
         return false;
     };
 
+    var removeGuides = async function( url, guideIds ) {
+        var normalizedUrl = normalizeUrl( url );
+        if ( !normalizedUrl || !guideIds || !guideIds.length )
+            return 0;
+
+        var guidesStore = await getGuidesStore()
+            , pageGuides = guidesStore[normalizedUrl]
+            , removed = 0;
+
+        if ( !pageGuides )
+            return removed;
+
+        for ( var i = 0, len = guideIds.length; i < len; i++ ) {
+            if ( pageGuides[guideIds[i]] ) {
+                delete pageGuides[guideIds[i]];
+                removed++;
+            }
+        }
+
+        if ( removed ) {
+            guidesStore[normalizedUrl] = pageGuides;
+            await setGuidesStore( guidesStore );
+        }
+
+        return removed;
+    };
+
     var clearGuides = async function( url ) {
         var normalizedUrl = normalizeUrl( url );
         if ( !normalizedUrl )
@@ -344,6 +371,13 @@
             if ( request.method == 'removeGuide' ) {
                 sendResponse({
                     success: await removeGuide( request.url, request.id )
+                });
+                return;
+            }
+
+            if ( request.method == 'removeGuides' ) {
+                sendResponse({
+                    removed: await removeGuides( request.url, request.ids || [] )
                 });
                 return;
             }
