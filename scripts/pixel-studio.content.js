@@ -153,6 +153,52 @@
             });
             return arr;
         }
+        , getCoincidentGuides: function( targetGuide ) {
+            var matches = [];
+            if ( !targetGuide )
+                return matches;
+
+            this.withAll(function( guide ) {
+                if (
+                    guide._dir == targetGuide._dir
+                    && guide.getPosition() == targetGuide.getPosition()
+                )
+                    matches.push( guide );
+            });
+
+            return matches.sort(function( guideA, guideB ) {
+                return guideA._id < guideB._id ? -1 : 1;
+            });
+        }
+        , getCoincidentGroups: function() {
+            var lookup = {}
+                , groups = [];
+
+            this.withAll(function( guide ) {
+                var key = [ guide._dir, guide.getPosition() ].join(':');
+                if ( !lookup[key] ) {
+                    lookup[key] = {
+                        key: key
+                        , dir: guide._dir
+                        , pos: guide.getPosition()
+                        , guides: []
+                    };
+                    groups.push( lookup[key] );
+                }
+
+                lookup[key].guides.push( guide );
+            });
+
+            return $.map( groups, function( group ) {
+                if ( group.guides.length < 2 )
+                    return null;
+
+                group.guides.sort(function( guideA, guideB ) {
+                    return guideA._id < guideB._id ? -1 : 1;
+                });
+                return group;
+            });
+        }
         , clear: function( dir ) {
             var guides = this.getAll( dir );
             for ( var i = 0, len = guides.length; i < len; i++ )
@@ -361,28 +407,28 @@
         }
 
         , dialogMouseMove: function(ev) {
-            if ( deleteMode.isActive() ) {
+            if ( deleteMode.isActive() || moveSelection.isActive() ) {
                 clearTimeout( this._dialogTimer );
                 return;
             }
             clearTimeout( this._dialogTimer );
             this._dialogTimer = setTimeout(function() {
                 if ( !this._dialog && !this._dragging )
-                    this._dialog = new dialog( this, ev );
+                    createDialogForGuide( this, ev );
             }.bind(this), 500);
         }
         , dialogMouseOut: function(ev) {
             clearTimeout( this._dialogTimer );
         }
         , dialogContextMenu: function(ev) {
-            if ( deleteMode.shouldSuppressMenus() ) {
+            if ( deleteMode.shouldSuppressMenus() || moveSelection.isActive() ) {
                 ev.preventDefault();
                 ev.stopPropagation();
                 return false;
             }
             if ( !this._dialog ) { // if right click
                 ev.preventDefault();
-                this._dialog = new dialog( this, ev );
+                createDialogForGuide( this, ev );
             }
         }
 
@@ -488,6 +534,7 @@
             this.save();
 
             this.fireMovedEvent();
+            moveSelection.handleDragEnd( this );
         }
         , keyDown: function( ev ) {
             if ( ev.keyCode == 8 || ev.keyCode == 46 ) {
@@ -532,6 +579,7 @@
         , destroy: function( options ) {
             options = options || {};
             clearTimeout( this._dialogTimer );
+            moveSelection.handleGuideDestroyed( this );
 
             if ( !options.skipStorage ) {
                 chrome.runtime.sendMessage(
@@ -560,46 +608,285 @@
                 .off( 'mouseup', this._dragMouseUp );
             delete this.win;
             delete this.doc;
-            this._.off().fadeOut( 'fast', function() {
-                this._.remove();
+            var $line = this._;
+            $line.off();
+
+            if ( options.immediate ) {
+                $line.remove();
+                this.fireMovedEvent();
+                return;
+            }
+
+            $line.fadeOut( 'fast', function() {
+                $line.remove();
                 this.fireMovedEvent();
             }.bind(this));
         }
     };
+
+    var createDialogForGuides = function( guides, mouseEvent ) {
+        guides = guides || [];
+        for ( var i = 0, len = guides.length; i < len; i++ ) {
+            if ( guides[i] && guides[i]._dialog )
+                return guides[i]._dialog;
+        }
+
+        if ( !guides.length )
+            return null;
+
+        return new dialog( guides, mouseEvent );
+    };
+
+    var createDialogForGuide = function( guide, mouseEvent ) {
+        var coincidentGuides = lines.getCoincidentGuides( guide );
+        return createDialogForGuides(
+            coincidentGuides.length > 1 ? coincidentGuides : [ guide ]
+            , mouseEvent
+        );
+    };
+
+    var moveSelection = ({
+        activeGuide: null
+        , siblings: []
+        , init: function() {
+            this.body = $(document.body);
+            this.render();
+            this.bindEvents();
+            return this;
+        }
+        , render: function() {
+            this.$badge = $('<div>')
+                .addClass('pixelStudio-move-badge')
+                .text('Movimiento preciso activo · arrastra la guía seleccionada · Esc cancela')
+                .appendTo( document.body )
+                .hide();
+        }
+        , bindEvents: function() {
+            this._onKeyDown = this.onKeyDown.bind(this);
+            $(document).on( 'keydown', this._onKeyDown );
+        }
+        , onKeyDown: function( ev ) {
+            if ( this.activeGuide && ev.keyCode == 27 ) {
+                ev.preventDefault();
+                this.deactivate();
+            }
+        }
+        , isActive: function() {
+            return !!this.activeGuide;
+        }
+        , isSelected: function( guide ) {
+            return !!(
+                guide
+                && this.activeGuide
+                && guide._id == this.activeGuide._id
+            );
+        }
+        , activate: function( guide ) {
+            if ( !guide )
+                return;
+
+            deleteMode.deactivate();
+            this.deactivate();
+
+            this.activeGuide = guide;
+            this.siblings = $.grep( lines.getCoincidentGuides( guide ), function( sibling ) {
+                return sibling._id != guide._id;
+            });
+
+            this.body.addClass('pixelStudio-move-mode');
+            guide._.addClass('pixelStudio-line-move-selected').css( 'z-index', '1000000001' );
+            for ( var i = 0, len = this.siblings.length; i < len; i++ )
+                this.siblings[i]._.addClass('pixelStudio-line-move-muted');
+
+            this.$badge.stop(true, true).fadeIn('fast');
+            guide.focusTo();
+        }
+        , deactivate: function() {
+            if ( !this.activeGuide )
+                return;
+
+            this.body.removeClass('pixelStudio-move-mode');
+
+            if ( this.activeGuide._ )
+                this.activeGuide._.removeClass('pixelStudio-line-move-selected').css( 'z-index', '' );
+
+            for ( var i = 0, len = this.siblings.length; i < len; i++ ) {
+                if ( this.siblings[i] && this.siblings[i]._ )
+                    this.siblings[i]._.removeClass('pixelStudio-line-move-muted');
+            }
+
+            this.$badge.stop(true, true).fadeOut('fast');
+            this.activeGuide = null;
+            this.siblings = [];
+        }
+        , handleGuideDestroyed: function( guide ) {
+            if ( this.isSelected( guide ) )
+                return this.deactivate();
+
+            this.siblings = $.grep( this.siblings, function( sibling ) {
+                return sibling && sibling._id != guide._id;
+            });
+        }
+        , handleDragEnd: function( guide ) {
+            if ( this.isSelected( guide ) )
+                this.deactivate();
+        }
+    }).init();
+
+    var stackBadges = ({
+        cache: null
+        , timer: null
+        , init: function() {
+            this._debouncedDraw = this.debouncedDraw.bind(this);
+            $(document.body).on( 'pixelStudioMoved.pixelStudioStackBadges', this._debouncedDraw );
+            $(window)
+                .on( 'scroll.pixelStudioStackBadges', this._debouncedDraw )
+                .on( 'resize.pixelStudioStackBadges', this._debouncedDraw );
+            this.draw();
+            return this;
+        }
+        , debouncedDraw: function() {
+            clearTimeout( this.timer );
+            this.timer = setTimeout( this.draw.bind(this), 5 );
+        }
+        , removeAll: function() {
+            if ( this.cache ) {
+                $.each( this.cache, function( i, badge ) {
+                    badge.remove();
+                });
+            }
+            this.cache = [];
+        }
+        , getDistinctColors: function( guides ) {
+            var lookup = {}
+                , palette = [];
+
+            for ( var i = 0, len = guides.length; i < len; i++ ) {
+                var normalized = colorToHex( guides[i]._color );
+                if ( lookup[normalized] )
+                    continue;
+                lookup[normalized] = true;
+                palette.push( normalized );
+            }
+
+            return palette;
+        }
+        , getBadgeGradient: function( colors ) {
+            if ( !colors.length )
+                return '';
+
+            if ( colors.length == 1 )
+                return 'linear-gradient(145deg, ' + colorToRgba( colors[0], 0.82 ) + ', ' + rgbToRgba( mixRgb( colorToRgbParts( colors[0] ), { r: 255, g: 255, b: 255 }, 0.2 ), 0.54 ) + ')';
+
+            var step = 100 / colors.length
+                , stops = [];
+
+            for ( var i = 0, len = colors.length; i < len; i++ ) {
+                var start = ( step * i ).toFixed(2) + '%'
+                    , end = ( step * ( i + 1 ) ).toFixed(2) + '%';
+                stops.push( colors[i] + ' ' + start + ' ' + end );
+            }
+
+            return 'conic-gradient(' + stops.join(', ') + ')';
+        }
+        , getBadgePosition: function( group ) {
+            var anchor = group.guides[0]
+                , win = $(window)
+                , scrollLeft = win.scrollLeft()
+                , scrollTop = win.scrollTop();
+
+            if ( group.dir == 'vert' ) {
+                return {
+                    left: ( anchor.getPosition() + anchor._thickOffset - scrollLeft ) + 'px'
+                    , top: '14px'
+                };
+            }
+
+            return {
+                left: '14px'
+                , top: ( anchor.getPosition() + anchor._thickOffset - scrollTop ) + 'px'
+            };
+        }
+        , openGroupDialog: function( group, badge ) {
+            if ( deleteMode.isActive() || moveSelection.isActive() )
+                return;
+
+            var offset = badge.offset();
+            createDialogForGuides( group.guides, {
+                pageX: offset.left + Math.floor( badge.outerWidth() / 2 )
+                , pageY: offset.top + Math.floor( badge.outerHeight() / 2 )
+            });
+        }
+        , draw: function() {
+            this.removeAll();
+
+            var groups = lines.getCoincidentGroups();
+            for ( var i = 0, len = groups.length; i < len; i++ ) {
+                var group = groups[i]
+                    , colors = this.getDistinctColors( group.guides )
+                    , badge = $('<button type="button">')
+                        .addClass( 'pixelStudio-stack-badge ' + group.dir )
+                        .attr( 'title', group.guides.length + ' guías coincidentes' )
+                        .css( this.getBadgePosition( group ) )
+                        .append(
+                            $('<span>')
+                                .addClass('pixelStudio-stack-badge-count')
+                                .text( group.guides.length )
+                        )
+                        .appendTo( document.body );
+
+                badge.css({
+                    'background-image': this.getBadgeGradient( colors )
+                    , 'border-color': colorToRgba( colors[0] || '#c50aeb', 0.55 )
+                });
+
+                (function( badgeRef, groupRef, context ) {
+                    var hoverTimer = null;
+                    badgeRef
+                        .on( 'mouseenter', function() {
+                            clearTimeout( hoverTimer );
+                            hoverTimer = setTimeout(function() {
+                                context.openGroupDialog( groupRef, badgeRef );
+                            }, 250);
+                        })
+                        .on( 'mouseleave', function() {
+                            clearTimeout( hoverTimer );
+                        })
+                        .on( 'click', function( ev ) {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            context.openGroupDialog( groupRef, badgeRef );
+                        });
+                })( badge, group, this );
+
+                this.cache.push( badge );
+            }
+        }
+    }).init();
 
     var dialogIcons = {
         delete: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6m-9 4h12M8 7l1 12h6l1-12M10 10v6M14 10v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
         , rotate: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
         , color: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c4.97 0 9 3.36 9 7.5 0 2.6-1.74 4.16-4.16 4.16h-1.18a1.66 1.66 0 0 0-1.66 1.66c0 .35.1.69.28.99.4.65.22 1.49-.41 1.93A3.88 3.88 0 0 1 11.56 20C6.83 20 3 16.19 3 11.5 3 6.81 7.03 3 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="8.5" cy="10" r="1" fill="currentColor"></circle><circle cx="12" cy="8" r="1" fill="currentColor"></circle><circle cx="15.5" cy="10" r="1" fill="currentColor"></circle></svg>'
         , close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 9l-6 6M9 9l6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
+        , back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6M10 12h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
+        , move: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M12 8a4 4 0 1 1 0 8a4 4 0 0 1 0-8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
         , custom: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
     };
 
-    var dialog = function( line, mouseEvent ) {
-        if ( line._dialog )
-            return; // this line already has a dialog!
-
-        this.line = line;
+    var dialog = function( lineOrGuides, mouseEvent ) {
+        this.guides = $.isArray( lineOrGuides ) ? lineOrGuides.slice(0) : [ lineOrGuides ];
+        this.line = this.guides[0];
+        this.selectedGuide = this.guides.length == 1 ? this.line : null;
+        this.mouseEvent = mouseEvent;
         this.icons = {};
         this.$colorPopover = null;
         this._suspendAutoClose = false;
         this._ = $('<div>')
-                    .addClass('pixelStudio-dialog ' + line._dir)
+                    .addClass('pixelStudio-dialog ' + this.line._dir + ( this.guides.length > 1 ? ' cluster' : '' ))
                     .appendTo( document.body );
 
-        if ( this.line._dir == 'vert' ) {
-            this._.css({
-                //left: ( mouseEvent.pageX - Math.floor( this._.width() / 2 ) ) + 'px'
-                left: Math.floor( ( this.line._thickOffset - (this._.width() / 2) ) + this.line.getPosition() ) + 'px'
-                , top: ( mouseEvent.pageY + 10 ) + 'px'
-            });
-        } else {
-            this._.css({
-                left: ( mouseEvent.pageX + 10 ) + 'px'
-                , top: Math.floor( ( this.line._thickOffset - (this._.height() / 2) ) + this.line.getPosition() ) + 'px'
-                //, top: ( mouseEvent.pageY - Math.floor( this._.height() / 2 ) ) + 'px'
-            });
-        }
+        this.positionDialog( mouseEvent );
 
         this._mouseOut = this.mouseOut.bind(this);
         this._mouseOver = this.mouseOver.bind(this);
@@ -607,20 +894,73 @@
         this._
             .on( 'mouseout', this._mouseOut )
             .on( 'mouseover', this._mouseOver );
-        this.line._
-            .addClass('glow')
-            .on( 'mouseout', this._mouseOut )
-            .on( 'mouseover', this._mouseOver );
-        this.renderDefaultActions();
 
-        this._.on( 'click', '.pixelStudio-icon, .pixelStudio-dialog-color-picker', function(ev) {
+        for ( var i = 0, len = this.guides.length; i < len; i++ ) {
+            this.guides[i]._dialog = this;
+            this.guides[i]._
+                .addClass('glow')
+                .on( 'mouseout', this._mouseOut )
+                .on( 'mouseover', this._mouseOver );
+        }
+
+        if ( this.guides.length > 1 )
+            this.renderGroupSelection();
+        else
+            this.renderGuideActions( this.line );
+
+        this.positionDialog( this.mouseEvent );
+
+        this._.on( 'click', '.pixelStudio-icon, .pixelStudio-dialog-color-picker', function() {
             setTimeout( function() {
-                this.line.focusTo(); // so keyboard events will still work after orientation switch
+                var targetGuide = this.getTargetGuide();
+                if ( targetGuide )
+                    targetGuide.focusTo();
             }.bind(this), 0 );
         }.bind(this));
     }
     dialog.prototype = {
-        mouseOut: function() {
+        positionDialog: function( mouseEvent ) {
+            if ( this.line._dir == 'vert' ) {
+                this._.css({
+                    left: Math.floor( ( this.line._thickOffset - (this._.width() / 2) ) + this.line.getPosition() ) + 'px'
+                    , top: ( mouseEvent.pageY + 10 ) + 'px'
+                });
+            } else {
+                this._.css({
+                    left: ( mouseEvent.pageX + 10 ) + 'px'
+                    , top: Math.floor( ( this.line._thickOffset - (this._.height() / 2) ) + this.line.getPosition() ) + 'px'
+                });
+            }
+        }
+        , getTargetGuide: function() {
+            return this.selectedGuide || this.line;
+        }
+        , getGuidesByColor: function() {
+            var buckets = [];
+            for ( var i = 0, len = this.guides.length; i < len; i++ ) {
+                var guide = this.guides[i]
+                    , color = colorToHex( guide._color )
+                    , existing = null;
+
+                for ( var j = 0, jlen = buckets.length; j < jlen; j++ ) {
+                    if ( buckets[j].color == color )
+                        existing = buckets[j];
+                }
+
+                if ( !existing ) {
+                    existing = {
+                        color: color
+                        , guides: []
+                    };
+                    buckets.push( existing );
+                }
+
+                existing.guides.push( guide );
+            }
+
+            return buckets;
+        }
+        , mouseOut: function() {
             clearTimeout( this._timer );
             if ( this._suspendAutoClose )
                 return;
@@ -637,11 +977,13 @@
                 .fadeOut( 'fast', function() {
                     $(this).remove();
                 });
-            this.line._
-                .removeClass('glow')
-                .off( 'mouseout', this._mouseOut )
-                .off( 'mouseover', this._mouseOver );
-            delete this.line._dialog;
+            for ( var i = 0, len = this.guides.length; i < len; i++ ) {
+                this.guides[i]._
+                    .removeClass('glow')
+                    .off( 'mouseout', this._mouseOut )
+                    .off( 'mouseover', this._mouseOver );
+                delete this.guides[i]._dialog;
+            }
         }
 
         , createIcon: function( addOnClass, title ) {
@@ -654,6 +996,7 @@
         }
         , clearContent: function() {
             this.destroyColorPopover();
+            this.icons = {};
             this._.children().remove();
         }
         , suspendAutoClose: function( shouldSuspend ) {
@@ -671,39 +1014,148 @@
                 this.icons.color.removeClass('active');
         }
         , applyLineColor: function( color ) {
-            this.line.setColor( color );
-            this.line.save();
-            this.line.fireMovedEvent();
+            var targetGuide = this.getTargetGuide();
+            if ( !targetGuide )
+                return;
+
+            targetGuide.setColor( color );
+            targetGuide.save();
+            targetGuide.fireMovedEvent();
+
+            if ( this.$detailSwatch )
+                this.$detailSwatch.css( 'background-color', color );
         }
-        , renderDefaultActions: function() {
+        , renderGroupSelection: function() {
             this.clearContent();
 
+            this.selectedGuide = null;
+
+            $('<div>')
+                .addClass('pixelStudio-dialog-group-title')
+                .text( this.guides.length + ' guías coincidentes' )
+                .appendTo( this._ );
+
+            $('<div>')
+                .addClass('pixelStudio-dialog-group-subtitle')
+                .text('Color → guía')
+                .appendTo( this._ );
+
+            var groups = this.getGuidesByColor()
+                , list = $('<div>')
+                    .addClass('pixelStudio-dialog-guide-groups')
+                    .appendTo( this._ );
+
+            for ( var i = 0, len = groups.length; i < len; i++ ) {
+                var section = $('<div>')
+                        .addClass('pixelStudio-dialog-guide-group')
+                        .appendTo( list )
+                    , group = groups[i];
+
+                $('<div>')
+                    .addClass('pixelStudio-dialog-guide-group-label')
+                    .append(
+                        $('<span>')
+                            .addClass('pixelStudio-dialog-guide-group-swatch')
+                            .css( 'background-color', group.color )
+                    )
+                    .appendTo( section );
+
+                var buttons = $('<div>')
+                    .addClass('pixelStudio-dialog-guide-buttons')
+                    .appendTo( section );
+
+                for ( var j = 0, jlen = group.guides.length; j < jlen; j++ ) {
+                    (function( guide, index, ctx ) {
+                        $('<button type="button">')
+                            .addClass('pixelStudio-dialog-guide-entry')
+                            .css({
+                                'background-color': colorToRgba( group.color, 0.26 )
+                                , 'background-image': 'linear-gradient(145deg, ' + rgbToRgba( mixRgb( colorToRgbParts( group.color ), { r: 255, g: 255, b: 255 }, 0.16 ), 0.42 ) + ', ' + rgbToRgba( mixRgb( colorToRgbParts( group.color ), { r: 15, g: 23, b: 42 }, 0.2 ), 0.42 ) + ')'
+                                , 'border-color': colorToRgba( group.color, 0.55 )
+                                , 'box-shadow': '0 8px 18px rgba(15, 23, 42, 0.2), inset 0 0 0 1px ' + colorToRgba( group.color, 0.2 )
+                            })
+                            .append(
+                                $('<span>')
+                                    .addClass('pixelStudio-dialog-guide-entry-number')
+                                    .text( index + 1 )
+                            )
+                            .appendTo( buttons )
+                            .on( 'click', function() {
+                                ctx.renderGuideActions( guide );
+                            });
+                    })( group.guides[j], j, this );
+                }
+            }
+
+            this.positionDialog( this.mouseEvent );
+        }
+        , renderGuideActions: function( guide ) {
+            this.clearContent();
+            this.selectedGuide = guide;
+
+            if ( this.guides.length > 1 ) {
+                var header = $('<div>')
+                    .addClass('pixelStudio-dialog-guide-detail')
+                    .appendTo( this._ );
+
+                this.createIcon('back', 'Volver al grupo')
+                    .appendTo( header )
+                    .on( 'click', this.renderGroupSelection.bind(this) );
+
+                var meta = $('<div>')
+                    .addClass('pixelStudio-dialog-guide-detail-meta')
+                    .appendTo( header );
+
+                this.$detailSwatch = $('<span>')
+                    .addClass('pixelStudio-dialog-guide-detail-swatch')
+                    .css( 'background-color', guide._color )
+                    .appendTo( meta );
+            }
+
+            var actions = $('<div>')
+                .addClass('pixelStudio-dialog-guide-actions')
+                .appendTo( this._ );
+
+            if ( this.guides.length > 1 ) {
+                this.icons.move = this.createIcon('move', 'Seleccionar para mover')
+                    .appendTo( actions )
+                    .on( 'click', function() {
+                        this.destroy();
+                        moveSelection.activate( guide );
+                    }.bind(this) );
+            }
+
             this.icons.del = this.createIcon('delete', 'Eliminar guía')
-                .appendTo( this._ )
+                .appendTo( actions )
                 .on( 'click', function() {
-                    this.line.destroy();
-                    this.destroy();
+                    guide.destroy();
                 }.bind(this));
 
             this.icons.rot = this.createIcon('rotate', 'Rotar guía')
-                .appendTo( this._ )
+                .appendTo( actions )
                 .on( 'click', function( ev ) {
                     this.destroy();
-                    var goingVert = this.line._dir == 'horz';
-                    this.line._dir = goingVert ? 'vert' : 'horz';
-                    this.line._
+                    var goingVert = guide._dir == 'horz';
+                    guide._dir = goingVert ? 'vert' : 'horz';
+                    guide._
                         .removeClass( goingVert ? 'horz' : 'vert' )
                         .addClass( goingVert ? 'vert' : 'horz' );
-                    this.line.resizeRoutineHeavy();
-                    this.line.dragMouseMove( ev );
+                    guide.resizeRoutineHeavy();
+                    guide.dragMouseMove( ev );
                 }.bind(this));
 
             this.icons.color = this.createIcon('color', 'Cambiar color')
-                .appendTo( this._ )
+                .appendTo( actions )
                 .on( 'click', this.clickColor.bind(this));
+
+            this.positionDialog( this.mouseEvent );
         }
 
         , clickColor: function() {
+            var targetGuide = this.getTargetGuide();
+            if ( !targetGuide )
+                return;
+
             if ( this.$colorPopover ) {
                 this.destroyColorPopover();
                 return;
@@ -731,7 +1183,7 @@
                     .attr( 'title', presetColors[i].name )
                     .css( 'background-color', presetColors[i].value )
                     .data('color', presetColors[i].value)
-                    .toggleClass( 'active', colorToHex( presetColors[i].value ) == colorToHex( this.line._color ) )
+                    .toggleClass( 'active', colorToHex( presetColors[i].value ) == colorToHex( targetGuide._color ) )
                     .on( 'click', function( ev ) {
                         this.applyLineColor( $(ev.currentTarget).data('color') );
                         this.destroyColorPopover();
@@ -744,7 +1196,7 @@
                 .append(
                     $('<span>')
                         .addClass('pixelStudio-dialog-color-picker-preview')
-                        .css( 'background-color', this.line._color )
+                        .css( 'background-color', targetGuide._color )
                     , $('<span>')
                         .addClass('pixelStudio-dialog-color-picker-icon')
                         .html( dialogIcons.custom )
@@ -753,7 +1205,7 @@
 
             $('<input type="color" class="pixelStudio-dialog-color-picker">')
                 .attr( 'title', 'Elegir color personalizado' )
-                .val( colorToHex( this.line._color ) )
+                .val( colorToHex( targetGuide._color ) )
                 .appendTo( customPicker )
                 .on( 'mousedown click focus', function() {
                     this.suspendAutoClose( true );
@@ -780,10 +1232,14 @@
                 return guide._id;
             } );
 
+        moveSelection.deactivate();
         deleteMode.deactivate();
 
         for ( var i = 0, len = guides.length; i < len; i++ )
-            guides[i].destroy({ skipStorage: true });
+            guides[i].destroy({
+                skipStorage: true
+                , immediate: true
+            });
 
         if ( !ids.length )
             return 0;
@@ -857,6 +1313,7 @@
         , activate: function() {
             if ( this.active )
                 return;
+            moveSelection.deactivate();
             this.active = true;
             this.body.addClass('pixelStudio-delete-mode');
             this.$badge.stop(true, true).fadeIn('fast');
@@ -1252,7 +1709,7 @@
             this._clearDataAndHide();
         }
         , onContextMenu: function(ev) {
-            if ( deleteMode.shouldSuppressMenus() ) {
+            if ( deleteMode.shouldSuppressMenus() || moveSelection.isActive() ) {
                 ev.preventDefault();
                 ev.stopPropagation();
                 this.clearDataAndHide();

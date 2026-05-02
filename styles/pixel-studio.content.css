@@ -149,6 +149,108 @@
 .pixelStudio-dialog.horz {
     flex-direction: row;
 }
+.pixelStudio-dialog.cluster {
+    flex-direction: column;
+    min-width: 220px;
+    max-width: 280px;
+    padding: 10px;
+}
+.pixelStudio-dialog-group-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f8fafc;
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.6);
+}
+.pixelStudio-dialog-group-subtitle {
+    font-size: 10px;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(241, 245, 249, 0.72);
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.58);
+}
+.pixelStudio-dialog-guide-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.pixelStudio-dialog-guide-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.pixelStudio-dialog-guide-group-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+.pixelStudio-dialog-guide-group-swatch,
+.pixelStudio-dialog-guide-detail-swatch {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.24);
+}
+.pixelStudio-dialog-guide-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1 1 auto;
+}
+.pixelStudio-dialog-guide-entry {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.28);
+    color: #f8fafc;
+    font-size: 13px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.82);
+    cursor: pointer;
+    transition:
+        transform 0.18s ease,
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+.pixelStudio-dialog-guide-entry:hover {
+    transform: translateY(-1px);
+    background: rgba(15, 23, 42, 0.4);
+    border-color: rgba(255, 255, 255, 0.32);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.22);
+}
+.pixelStudio-dialog-guide-detail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pixelStudio-dialog-guide-detail-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.pixelStudio-dialog-guide-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 .pixelStudio-icon-button {
     appearance: none;
     -webkit-appearance: none;
@@ -309,6 +411,73 @@
 .pixelStudio-dialog-color-picker-icon svg {
     width: 12px;
     height: 12px;
+}
+.pixelStudio-stack-badge {
+    position: fixed;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.82);
+    box-shadow:
+        0 8px 22px rgba(15, 23, 42, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    z-index: 999999999;
+}
+.pixelStudio-stack-badge.vert {
+    transform: translate(-50%, 0);
+}
+.pixelStudio-stack-badge.horz {
+    transform: translate(0, -50%);
+}
+.pixelStudio-stack-badge:hover {
+    box-shadow:
+        0 12px 28px rgba(15, 23, 42, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+.pixelStudio-line-move-selected:after {
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.36),
+        0 0 14px 1px currentColor !important;
+    filter:
+        drop-shadow(0 0 4px rgba(15, 23, 42, 0.44))
+        drop-shadow(0 0 10px currentColor) !important;
+}
+.pixelStudio-line-move-muted {
+    pointer-events: none !important;
+    opacity: 0.22;
+}
+.pixelStudio-move-badge {
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.76);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #f8fafc;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.28);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    z-index: 1000000001;
+}
+.pixelStudio-move-mode,
+.pixelStudio-move-mode * {
+    cursor: crosshair !important;
 }
 
 .pixelStudio-distance, .pixelStudio-distance.lime {
