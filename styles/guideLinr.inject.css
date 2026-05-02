@@ -2,7 +2,7 @@
     position: absolute;
     display: none;
     overflow: hidden;
-    z-index: 999999997;
+    z-index: 999999998;
     outline: none;
     -webkit-transition: box-shadow 0.3s ease;
     transition: box-shadow 0.3s ease;
@@ -172,56 +172,79 @@
 .guideLinr-distance, .guideLinr-distance.lime {
   position: fixed;
   text-align: center;
-  z-index: 999999998;
+  z-index: 999999997;
   font-family: Verdana, Helvetica, Arial, sans-serif;
   font-size: 12px;
   cursor: default;
-  opacity: 0.2;
-  
+  opacity: 0.92;
   overflow: hidden;
-  color: white;
-  text-shadow: 0px 0px 5px black;
-  background-color: lime;
+  box-sizing: border-box;
+  color: #f8fafc;
+  text-shadow: 1px 1px 2px black;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: opacity 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .guideLinr-distance:hover {
-  opacity: 0.7;
+  opacity: 1;
+  box-shadow: 0 8px 34px rgba(0, 0, 0, 0.14);
 }
-.guideLinr-distance.aqua {
-    background-color: aqua;
+.guideLinr-distance.editable {
+  cursor: text;
 }
-.guideLinr-distance.blue {
-    background-color: blue;
+.guideLinr-distance.editing {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.45);
 }
-.guideLinr-distance.green {
-    background-color: green;
+.guideLinr-distance .guideLinr-distance-label {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 2px 6px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
-.guideLinr-distance.yellow {
-    background-color: yellow;
-}
-.guideLinr-distance.orange {
-    background-color: orange;
-}
-.guideLinr-distance.red {
-    background-color: red;
-}
-.guideLinr-distance.pink {
-    background-color: pink;
-}
-
-
 .guideLinr-distance.horz {
-    width: 15px;
+    width: 18px;
 }
-.guideLinr-distance.horz span {
-    height: 0;
-    width: 0;
+.guideLinr-distance.horz .guideLinr-distance-label {
+    height: auto;
+    width: auto;
     overflow: visible;
 
     position: absolute;
-    left: 0;
+    left: 50%;
+    top: 50%;
     vertical-align: top;
-    -webkit-transform: rotate(-90deg);
-    transform: rotate(-90deg);
+    -webkit-transform: translate(-50%, -50%) rotate(-90deg);
+    transform: translate(-50%, -50%) rotate(-90deg);
+    -webkit-transform-origin: center center;
+    transform-origin: center center;
+}
+.guideLinr-distance-input {
+    position: fixed;
+    z-index: 1000000000;
+    width: 92px;
+    padding: 8px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.88);
+    color: #f8fafc;
+    box-shadow:
+        0 18px 40px rgba(15, 23, 42, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+    font-size: 13px;
+    line-height: 1.2;
+    text-align: center;
+    font-family: Verdana, Helvetica, Arial, sans-serif;
+}
+.guideLinr-distance-input:focus {
+    outline: 2px solid rgba(96, 165, 250, 0.65);
+    outline-offset: 1px;
 }
 
 .guideLinr-element-highlight {

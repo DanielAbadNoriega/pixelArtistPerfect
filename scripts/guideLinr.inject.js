@@ -520,6 +520,117 @@
             clearTimeout( this.timer );
             this.timer = setTimeout( this.draw.bind(this), 5 ); // because some events happen near simultaneously
         }
+        , clamp: function( value, min, max ) {
+            return Math.max( min, Math.min( value, max ) );
+        }
+        , getEditorPosition: function( dist, input ) {
+            var rect = dist[0].getBoundingClientRect()
+                , inputWidth = input.outerWidth()
+                , inputHeight = input.outerHeight()
+                , padding = 8;
+
+            if ( dist.hasClass('horz') ) {
+                return {
+                    left: this.clamp(
+                        rect.right + 12
+                        , padding
+                        , window.innerWidth - inputWidth - padding
+                    ) + 'px'
+                    , top: this.clamp(
+                        rect.top + Math.floor( ( rect.height - inputHeight ) / 2 )
+                        , padding
+                        , window.innerHeight - inputHeight - padding
+                    ) + 'px'
+                };
+            }
+
+            return {
+                left: this.clamp(
+                    rect.left + Math.floor( ( rect.width - inputWidth ) / 2 )
+                    , padding
+                    , window.innerWidth - inputWidth - padding
+                ) + 'px'
+                , top: this.clamp(
+                    rect.bottom + 10
+                    , padding
+                    , window.innerHeight - inputHeight - padding
+                ) + 'px'
+            };
+        }
+        , destroyEditor: function() {
+            if ( !this._editor )
+                return;
+            this._editor.input.off().remove();
+            this._editor.dist.removeClass('editing');
+            delete this._editor;
+        }
+        , startEdit: function( dist ) {
+            var editData = dist && dist.data('guideLinrDistanceEdit');
+            if ( !editData || !editData.targetGuide )
+                return;
+
+            this.destroyEditor();
+
+            var input = $('<input type="number" min="0" step="1" class="guideLinr-distance-input">')
+                    .val( editData.size )
+                    .appendTo( document.body );
+
+            input.css( this.getEditorPosition( dist, input ) );
+
+            this._editor = {
+                dist: dist
+                , input: input
+                , editData: editData
+            };
+
+            dist.addClass('editing');
+
+            input
+                .on( 'mousedown click', function(ev) {
+                    ev.stopPropagation();
+                })
+                .on( 'keydown', function(ev) {
+                    if ( ev.keyCode == 13 ) {
+                        ev.preventDefault();
+                        this.applyEdit();
+                    } else if ( ev.keyCode == 27 ) {
+                        ev.preventDefault();
+                        this.destroyEditor();
+                    }
+                }.bind(this))
+                .on( 'blur', this.applyEdit.bind(this) )
+                .on( 'input', function() {
+                    input.css( this.getEditorPosition( dist, input ) );
+                }.bind(this) );
+
+            input.trigger('focus').trigger('select');
+        }
+        , applyEdit: function() {
+            if ( !this._editor )
+                return;
+
+            var editor = this._editor
+                , nextValue = parseInt( $.trim(editor.input.val()), 10 );
+
+            this.destroyEditor();
+
+            if ( isNaN(nextValue) )
+                return;
+
+            nextValue = Math.max( 0, nextValue );
+            if ( nextValue == editor.editData.size )
+                return;
+
+            var targetGuide = editor.editData.targetGuide
+                , snap = lines.getSnap()
+                , diff = nextValue - editor.editData.size
+                , nextPosition = Math.max( 0, targetGuide.getPosition() + diff );
+
+            targetGuide.snapPosition(
+                nextPosition
+                + ( snap ? targetGuide._thickOffset : 0 )
+            );
+        }
         , swapIndices: function( array, ind1, ind2 ) {
             array[ind1] = array.splice( ind2, 1, array[ind1] )[0];
             return array;
@@ -547,6 +658,7 @@
         }
 
         , removeAll: function() {
+            this.destroyEditor();
             if ( this.cache ) {
                 $.each( this.cache, function(i, dist) {
                     dist.remove();
@@ -554,6 +666,32 @@
                 delete this.cache;
             }
             this.cache = [];
+        }
+        , makeDistanceEditable: function( dist, size, targetGuide, placement ) {
+            dist.append(
+                $('<span>')
+                    .addClass('guideLinr-distance-label')
+                    .text( size + 'px' )
+                    .css( placement || {} )
+            );
+
+            if ( !targetGuide )
+                return dist.attr( 'title', size + 'px' );
+
+            dist
+                .addClass('editable')
+                .attr( 'title', 'Click to edit this distance' )
+                .data( 'guideLinrDistanceEdit', {
+                    size: size
+                    , targetGuide: targetGuide
+                })
+                .on( 'click', function(ev) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    this.startEdit( $(ev.currentTarget) );
+                }.bind(this) );
+
+            return dist;
         }
 
         , draw: function() {
@@ -592,13 +730,12 @@
                                     - ( !guides[i+1] ? vertWidth : 0 ); // for the one on the rightmost
                         var dist = $('<div>')
                             .addClass('guideLinr-distance ' + color)
-                            .text( wid + 'px' )
-                            .attr( 'title', wid + 'px' )
                             .css({
                                 left: ( ( pos2 + offset ) - scrollLeft ) + 'px'
                                 , top: top + 'px'
                                 , width: wid + 'px'
-                            })
+                            });
+                        this.makeDistanceEditable( dist, wid, guides[i+1] )
                             .appendTo( document.body );
                         this.cache.push( dist );
                     }
@@ -620,15 +757,8 @@
                                 top: ( ( pos2 + offset ) - scrollTop ) + 'px'
                                 , left: left + 'px'
                                 , height: hei + 'px'
-                            })
-                            .attr( 'title', hei + 'px' )
-                            .append(
-                                $('<span>')
-                                    .text(hei + 'px')
-                                    .css({
-                                        top: Math.floor(hei/2) + 'px'
-                                    })
-                            )
+                            });
+                        this.makeDistanceEditable( dist, hei, guides[i+1] )
                             .appendTo( document.body );
                         this.cache.push( dist );
                     }
