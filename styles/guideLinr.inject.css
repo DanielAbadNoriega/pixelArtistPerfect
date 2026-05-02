@@ -524,6 +524,83 @@
     font-size: 11px;
     font-weight: 600;
 }
+.guideLinr-settings-label-row {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+}
+.guideLinr-settings-inline-info {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(15, 23, 42, 0.26);
+    color: #f8fafc;
+    cursor: help;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 1px 1px 2px black;
+}
+.guideLinr-settings-inline-info::after,
+.guideLinr-settings-inline-info::before {
+    position: absolute;
+    left: 50%;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.16s ease, transform 0.16s ease;
+    z-index: 3;
+}
+.guideLinr-settings-inline-info::after {
+    content: attr(data-tooltip);
+    bottom: calc(100% + 10px);
+    transform: translateX(-50%) translateY(4px);
+    width: 220px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.34);
+    color: #f8fafc;
+    text-align: left;
+    white-space: normal;
+    font-size: 11px;
+    line-height: 1.4;
+    font-weight: 500;
+}
+.guideLinr-settings-inline-info::before {
+    content: "";
+    bottom: calc(100% + 4px);
+    transform: translateX(-50%) translateY(4px);
+    border-width: 6px 6px 0 6px;
+    border-style: solid;
+    border-color: rgba(15, 23, 42, 0.94) transparent transparent transparent;
+}
+.guideLinr-settings-inline-info-right::after {
+    left: auto;
+    right: 0;
+    transform: translateY(4px);
+}
+.guideLinr-settings-inline-info-right::before {
+    left: auto;
+    right: 4px;
+    transform: translateY(4px);
+}
+.guideLinr-settings-inline-info:hover::after,
+.guideLinr-settings-inline-info:hover::before,
+.guideLinr-settings-inline-info:focus-visible::after,
+.guideLinr-settings-inline-info:focus-visible::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.guideLinr-settings-inline-info-right:hover::after,
+.guideLinr-settings-inline-info-right:focus-visible::after,
+.guideLinr-settings-inline-info-right:hover::before,
+.guideLinr-settings-inline-info-right:focus-visible::before {
+    transform: translateY(0);
+}
 .guideLinr-settings-field.checkbox {
     display: flex;
     align-items: center;

@@ -29,8 +29,8 @@
                     <h2>Qué hace cada opción</h2>
                     <ul class="popup-copy-list">
                         <li><strong>Menú contextual</strong>: agrega acciones al clic derecho para crear guías alrededor del elemento bajo el cursor.</li>
-                        <li><strong>Ajustar a retícula</strong>: mueve las guías en saltos fijos de píxeles.</li>
-                        <li><strong>Imantar a bordes</strong>: al arrastrar, la guía se pega al borde más cercano si entras en el rango elegido.</li>
+                        <li><strong>Retícula de movimiento</strong>: hace que las guías se muevan en saltos fijos, por ejemplo cada 10 px.</li>
+                        <li><strong>Sensibilidad del imán a bordes</strong>: al arrastrar, la guía se pega a los bordes de elementos HTML de la página si pasas dentro del rango elegido.</li>
                         <li><strong>Editar distancias</strong>: haz clic en la medición sobre la página y escribe el nuevo valor en px.</li>
                     </ul>
                 </div>
@@ -49,71 +49,101 @@
                 </div>
             </section>
 
-            <section class="popup-card">
-                <div class="popup-card-head">
-                    <h2>Comportamiento</h2>
-                    <p>Define cómo se muestran y se mueven las guías.</p>
-                </div>
+            <section class="popup-card popup-card-collapsible">
+                <details class="popup-accordion">
+                    <summary class="popup-accordion-summary">
+                        <span class="popup-accordion-copy">
+                            <strong>Comportamiento</strong>
+                            <small>Define cómo se muestran y se mueven las guías.</small>
+                        </span>
+                        <span class="popup-accordion-chevron" aria-hidden="true">⌄</span>
+                    </summary>
 
-                <label class="popup-check-row">
-                    <input type='checkbox' id='show_distances'>
-                    <span>
-                        <strong>Mostrar distancias entre guías</strong>
-                        <small>Las cajas de medición aparecen activas desde el inicio.</small>
-                    </span>
-                </label>
+                    <div class="popup-accordion-body">
+                        <label class="popup-check-row">
+                            <input type='checkbox' id='show_distances'>
+                            <span>
+                                <strong>Mostrar distancias entre guías</strong>
+                                <small>Las cajas de medición aparecen activas desde el inicio.</small>
+                            </span>
+                        </label>
 
-                <label class="popup-check-row">
-                    <input type='checkbox' id='context_menu'>
-                    <span>
-                        <strong>Activar menú contextual</strong>
-                        <small>Añade acciones al clic derecho para crear guías rápidas.</small>
-                    </span>
-                </label>
+                        <label class="popup-check-row">
+                            <input type='checkbox' id='context_menu'>
+                            <span>
+                                <strong>Activar menú contextual</strong>
+                                <small>Añade acciones al clic derecho para crear guías rápidas.</small>
+                            </span>
+                        </label>
 
-                <div class="popup-field-grid">
-                    <label class="popup-select-field">
-                        <span>Ajustar a retícula</span>
-                        <select id='snap_to_px'>
-                            <option value=''>No</option>
-                            <option value='5'>5px</option>
-                            <option value='10'>10px</option>
-                            <option value='15'>15px</option>
-                            <option value='20'>20px</option>
-                            <option value='25'>25px</option>
-                            <option value='50'>50px</option>
-                            <option value='100'>100px</option>
-                        </select>
-                    </label>
+                        <div class="popup-field-grid">
+                            <label class="popup-select-field">
+                                <span class="popup-field-heading">
+                                    <span>Retícula de movimiento</span>
+                                    <button
+                                        type="button"
+                                        class="popup-inline-info"
+                                        aria-label="Información sobre la retícula de movimiento"
+                                        data-tooltip="Hace que la guía se mueva en saltos fijos. Si eliges 10 px, caerá en 0, 10, 20, 30..."
+                                    >i</button>
+                                </span>
+                                <select id='snap_to_px'>
+                                    <option value=''>Libre</option>
+                                    <option value='5'>Cada 5 px</option>
+                                    <option value='10'>Cada 10 px</option>
+                                    <option value='15'>Cada 15 px</option>
+                                    <option value='20'>Cada 20 px</option>
+                                    <option value='25'>Cada 25 px</option>
+                                    <option value='50'>Cada 50 px</option>
+                                    <option value='100'>Cada 100 px</option>
+                                </select>
+                            </label>
 
-                    <label class="popup-select-field">
-                        <span>Imantar a bordes</span>
-                        <select id='snap_to_els'>
-                            <option value=''>No</option>
-                            <option value='5'>5px</option>
-                            <option value='10'>10px</option>
-                            <option value='15'>15px</option>
-                            <option value='20'>20px</option>
-                        </select>
-                    </label>
-                </div>
+                            <label class="popup-select-field">
+                                <span class="popup-field-heading">
+                                    <span>Sensibilidad del imán a bordes</span>
+                                    <button
+                                        type="button"
+                                        class="popup-inline-info popup-inline-info-right"
+                                        aria-label="Información sobre la sensibilidad del imán a bordes"
+                                        data-tooltip="Al arrastrar, la guía se pega a los bordes de elementos HTML de la página. Este valor marca lo cerca que tienes que pasar para que se active ese imán."
+                                    >i</button>
+                                </span>
+                                <select id='snap_to_els'>
+                                    <option value=''>Desactivado</option>
+                                    <option value='5'>5 px · muy preciso</option>
+                                    <option value='10'>10 px · equilibrado</option>
+                                    <option value='15'>15 px · sensible</option>
+                                    <option value='20'>20 px · muy sensible</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                </details>
             </section>
 
-            <section class="popup-card">
-                <div class="popup-card-head">
-                    <h2>Acciones rápidas</h2>
-                    <p>Controla la página sin depender del popup clásico antiguo.</p>
-                </div>
+            <section class="popup-card popup-card-collapsible">
+                <details class="popup-accordion">
+                    <summary class="popup-accordion-summary">
+                        <span class="popup-accordion-copy">
+                            <strong>Acciones rápidas</strong>
+                            <small>Controla la página sin depender del popup clásico antiguo.</small>
+                        </span>
+                        <span class="popup-accordion-chevron" aria-hidden="true">⌄</span>
+                    </summary>
 
-                <div class="popup-actions-grid">
-                    <button type='button' id='openFloatingControls' class="popup-button">Mostrar / ocultar rueda flotante</button>
-                    <button type='button' id='toggleDeleteMode' class="popup-button">Borrar una guía</button>
-                    <button type='button' id='addGuideLineVert' class="popup-button popup-button-primary">Añadir vertical</button>
-                    <button type='button' id='addGuideLineHorz' class="popup-button popup-button-primary">Añadir horizontal</button>
-                    <button type='button' id='clearGuideLines' class="popup-button popup-button-danger">Limpiar página</button>
-                    <button type='button' id='clearGuideLinesVert' class="popup-button">Limpiar verticales</button>
-                    <button type='button' id='clearGuideLinesHorz' class="popup-button">Limpiar horizontales</button>
-                </div>
+                    <div class="popup-accordion-body">
+                        <div class="popup-actions-grid">
+                            <button type='button' id='openFloatingControls' class="popup-button">Mostrar / ocultar rueda flotante</button>
+                            <button type='button' id='toggleDeleteMode' class="popup-button">Borrar una guía</button>
+                            <button type='button' id='addGuideLineVert' class="popup-button popup-button-primary">Añadir vertical</button>
+                            <button type='button' id='addGuideLineHorz' class="popup-button popup-button-primary">Añadir horizontal</button>
+                            <button type='button' id='clearGuideLines' class="popup-button popup-button-danger">Limpiar página</button>
+                            <button type='button' id='clearGuideLinesVert' class="popup-button">Limpiar verticales</button>
+                            <button type='button' id='clearGuideLinesHorz' class="popup-button">Limpiar horizontales</button>
+                        </div>
+                    </div>
+                </details>
             </section>
         </main>
     </body>

@@ -1291,8 +1291,8 @@
                     , $('<p>').html('<strong>Atajos sobre la página</strong>: <strong>Alt/Option + Shift + I</strong> limpia verticales · <strong>+ L</strong> horizontales · <strong>+ D</strong> activa el modo borrar.')
                     , $('<p>').html('<strong>Borrar una guía</strong>: activa el modo borrar y haz clic en la guía que quieras quitar. <strong>Esc</strong> cancela.')
                     , $('<p>').html('<strong>Menú contextual</strong>: agrega acciones al clic derecho para crear guías alrededor del elemento bajo el cursor.')
-                    , $('<p>').html('<strong>Ajustar a retícula</strong>: mueve las guías en saltos fijos de píxeles.')
-                    , $('<p>').html('<strong>Imantar a bordes</strong>: al arrastrar, la guía se pega al borde cercano de un elemento si está dentro del rango elegido.')
+                    , $('<p>').html('<strong>Retícula de movimiento</strong>: hace que las guías se muevan en saltos fijos, por ejemplo cada 10 px.')
+                    , $('<p>').html('<strong>Sensibilidad del imán a bordes</strong>: al arrastrar, la guía se pega a los bordes de elementos HTML de la página si pasas dentro del rango elegido.')
                     , $('<p>').html('<strong>Más atajos</strong>: puedes verlos o personalizarlos desde el popup y en <code>chrome://extensions/shortcuts</code>.')
                 )
                 .appendTo( this.$panel );
@@ -1335,31 +1335,23 @@
                     , $('<label>')
                         .addClass('guideLinr-settings-field')
                         .append(
-                            $('<span>').text('Ajustar guías a retícula')
+                            this.buildFieldHeading(
+                                'Retícula de movimiento'
+                                , 'Hace que la guía se mueva en saltos fijos. Si eliges 10 px, caerá en 0, 10, 20, 30...'
+                            )
                             , $('<select data-setting="snapToPx">')
-                                .append(
-                                    $('<option value="">').text('No')
-                                    , $('<option value="5">').text('5px')
-                                    , $('<option value="10">').text('10px')
-                                    , $('<option value="15">').text('15px')
-                                    , $('<option value="20">').text('20px')
-                                    , $('<option value="25">').text('25px')
-                                    , $('<option value="50">').text('50px')
-                                    , $('<option value="100">').text('100px')
-                                )
+                                .append( this.buildGridSnapOptions() )
                         )
                     , $('<label>')
                         .addClass('guideLinr-settings-field')
                         .append(
-                            $('<span>').text('Imantar a bordes al arrastrar')
+                            this.buildFieldHeading(
+                                'Sensibilidad del imán a bordes'
+                                , 'Al arrastrar, la guía se pega a los bordes de elementos HTML de la página. Este valor marca lo cerca que tienes que pasar para que se active ese imán.'
+                                , true
+                            )
                             , $('<select data-setting="snapToEls">')
-                                .append(
-                                    $('<option value="">').text('No')
-                                    , $('<option value="5">').text('5px')
-                                    , $('<option value="10">').text('10px')
-                                    , $('<option value="15">').text('15px')
-                                    , $('<option value="20">').text('20px')
-                                )
+                                .append( this.buildEdgeSnapOptions() )
                         )
                     , $('<div>')
                         .addClass('guideLinr-settings-field')
@@ -1448,6 +1440,41 @@
                     })
                     .css( 'background-color', preset.value )[0];
             });
+        }
+        , buildFieldHeading: function( text, tooltip, alignRight ) {
+            return $('<span>')
+                .addClass('guideLinr-settings-label-row')
+                .append(
+                    $('<span>').text( text )
+                    , $('<button type="button">')
+                        .addClass('guideLinr-settings-inline-info' + ( alignRight ? ' guideLinr-settings-inline-info-right' : '' ))
+                        .attr({
+                            'aria-label': 'Información sobre ' + text.toLowerCase()
+                            , 'data-tooltip': tooltip
+                        })
+                        .text('i')
+                );
+        }
+        , buildGridSnapOptions: function() {
+            return [
+                $('<option value="">').text('Libre')[0]
+                , $('<option value="5">').text('Cada 5 px')[0]
+                , $('<option value="10">').text('Cada 10 px')[0]
+                , $('<option value="15">').text('Cada 15 px')[0]
+                , $('<option value="20">').text('Cada 20 px')[0]
+                , $('<option value="25">').text('Cada 25 px')[0]
+                , $('<option value="50">').text('Cada 50 px')[0]
+                , $('<option value="100">').text('Cada 100 px')[0]
+            ];
+        }
+        , buildEdgeSnapOptions: function() {
+            return [
+                $('<option value="">').text('Desactivado')[0]
+                , $('<option value="5">').text('5 px · muy preciso')[0]
+                , $('<option value="10">').text('10 px · equilibrado')[0]
+                , $('<option value="15">').text('15 px · sensible')[0]
+                , $('<option value="20">').text('20 px · muy sensible')[0]
+            ];
         }
         , loadSettings: function() {
             chrome.storage.local.get( defaultSettings, function( storedSettings ) {
