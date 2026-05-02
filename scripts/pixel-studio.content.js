@@ -226,7 +226,7 @@
         //log( 'options: ', options );
 
         this._ = $('<div>')
-                    .addClass( [ 'guideLinr-line', this._dir ].join(' ') )
+                    .addClass( [ 'pixelStudio-line', this._dir ].join(' ') )
                     .attr( 'tabIndex', '0' ) // so it can receive keyboard focus
                     .on( 'mousedown', this.dragMouseDown.bind(this) )
                     .on( 'mousemove', this.dialogMouseMove.bind(this) )
@@ -235,7 +235,7 @@
                     .on( 'keydown', this.keyDown.bind(this) )
                     .appendTo( document.body )
                     .fadeIn('fast');
-        this._.data( 'guideLinrLine', this );
+        this._.data( 'pixelStudioLine', this );
 
         this.setColor( this._color );
 
@@ -339,7 +339,7 @@
             return this._pos;
         }
         , fireMovedEvent: function() {
-            return this.body.trigger('guideLinrMoved');
+            return this.body.trigger('pixelStudioMoved');
         }
         
         , snapToNextEmptyPosition: function( snap ) {
@@ -584,7 +584,7 @@
         this.$colorPopover = null;
         this._suspendAutoClose = false;
         this._ = $('<div>')
-                    .addClass('guideLinr-dialog ' + line._dir)
+                    .addClass('pixelStudio-dialog ' + line._dir)
                     .appendTo( document.body );
 
         if ( this.line._dir == 'vert' ) {
@@ -613,7 +613,7 @@
             .on( 'mouseover', this._mouseOver );
         this.renderDefaultActions();
 
-        this._.on( 'click', '.guideLinr-icon, .guideLinr-dialog-color-picker', function(ev) {
+        this._.on( 'click', '.pixelStudio-icon, .pixelStudio-dialog-color-picker', function(ev) {
             setTimeout( function() {
                 this.line.focusTo(); // so keyboard events will still work after orientation switch
             }.bind(this), 0 );
@@ -646,7 +646,7 @@
 
         , createIcon: function( addOnClass, title ) {
             var icon = $('<button type="button">')
-                .addClass('guideLinr-icon guideLinr-icon-button ' + addOnClass)
+                .addClass('pixelStudio-icon pixelStudio-icon-button ' + addOnClass)
                 .html( dialogIcons[addOnClass] || '' );
             if ( title )
                 icon.attr('title', title);
@@ -710,7 +710,7 @@
             }
 
             var popover = $('<div>')
-                .addClass('guideLinr-dialog-color-popover')
+                .addClass('pixelStudio-dialog-color-popover')
                 .appendTo( this._ );
 
             this.$colorPopover = popover;
@@ -726,7 +726,7 @@
 
             for ( var i = 0, len = presetColors.length; i < len; i++ ) {
                 $('<button type="button">')
-                    .addClass('guideLinr-icon guideLinr-icon-button custom-color-swatch')
+                    .addClass('pixelStudio-icon pixelStudio-icon-button custom-color-swatch')
                     .appendTo( popover )
                     .attr( 'title', presetColors[i].name )
                     .css( 'background-color', presetColors[i].value )
@@ -739,19 +739,19 @@
             }
 
             var customPicker = $('<label>')
-                .addClass('guideLinr-dialog-color-picker-shell')
+                .addClass('pixelStudio-dialog-color-picker-shell')
                 .attr( 'title', 'Elegir color personalizado' )
                 .append(
                     $('<span>')
-                        .addClass('guideLinr-dialog-color-picker-preview')
+                        .addClass('pixelStudio-dialog-color-picker-preview')
                         .css( 'background-color', this.line._color )
                     , $('<span>')
-                        .addClass('guideLinr-dialog-color-picker-icon')
+                        .addClass('pixelStudio-dialog-color-picker-icon')
                         .html( dialogIcons.custom )
                 )
                 .appendTo( popover );
 
-            $('<input type="color" class="guideLinr-dialog-color-picker">')
+            $('<input type="color" class="pixelStudio-dialog-color-picker">')
                 .attr( 'title', 'Elegir color personalizado' )
                 .val( colorToHex( this.line._color ) )
                 .appendTo( customPicker )
@@ -759,7 +759,7 @@
                     this.suspendAutoClose( true );
                 }.bind(this) )
                 .on( 'input', function( ev ) {
-                    customPicker.find('.guideLinr-dialog-color-picker-preview').css( 'background-color', ev.target.value );
+                    customPicker.find('.pixelStudio-dialog-color-picker-preview').css( 'background-color', ev.target.value );
                     this.applyLineColor( ev.target.value );
                 }.bind(this) )
                 .on( 'change blur', function() {
@@ -813,7 +813,7 @@
         }
         , render: function() {
             this.$badge = $('<div>')
-                .addClass('guideLinr-delete-badge')
+                .addClass('pixelStudio-delete-badge')
                 .text('Borrado múltiple activo · haz clic en las guías que quieras quitar · Esc cancela')
                 .appendTo( document.body )
                 .hide();
@@ -834,8 +834,8 @@
             if ( !this.active )
                 return;
 
-            var $line = $(ev.target).closest('.guideLinr-line')
-                , guide = $line.data('guideLinrLine');
+            var $line = $(ev.target).closest('.pixelStudio-line')
+                , guide = $line.data('pixelStudioLine');
 
             if ( !guide )
                 return;
@@ -858,17 +858,17 @@
             if ( this.active )
                 return;
             this.active = true;
-            this.body.addClass('guideLinr-delete-mode');
+            this.body.addClass('pixelStudio-delete-mode');
             this.$badge.stop(true, true).fadeIn('fast');
-            this.body.trigger( 'guideLinrDeleteModeChanged', [ true ] );
+            this.body.trigger( 'pixelStudioDeleteModeChanged', [ true ] );
         }
         , deactivate: function() {
             if ( !this.active )
                 return;
             this.active = false;
-            this.body.removeClass('guideLinr-delete-mode');
+            this.body.removeClass('pixelStudio-delete-mode');
             this.$badge.stop(true, true).fadeOut('fast');
-            this.body.trigger( 'guideLinrDeleteModeChanged', [ false ] );
+            this.body.trigger( 'pixelStudioDeleteModeChanged', [ false ] );
         }
         , toggle: function() {
             if ( this.active )
@@ -930,13 +930,13 @@
             delete this._editor;
         }
         , startEdit: function( dist ) {
-            var editData = dist && dist.data('guideLinrDistanceEdit');
+            var editData = dist && dist.data('pixelStudioDistanceEdit');
             if ( !editData || !editData.targetGuide )
                 return;
 
             this.destroyEditor();
 
-            var input = $('<input type="number" min="0" step="1" class="guideLinr-distance-input">')
+            var input = $('<input type="number" min="0" step="1" class="pixelStudio-distance-input">')
                     .val( editData.size )
                     .appendTo( document.body );
 
@@ -1076,7 +1076,7 @@
         , makeDistanceEditable: function( dist, size, targetGuide, moveDirection, placement ) {
             dist.append(
                 $('<span>')
-                    .addClass('guideLinr-distance-label')
+                    .addClass('pixelStudio-distance-label')
                     .text( size + 'px' )
                     .css( placement || {} )
             );
@@ -1087,7 +1087,7 @@
             dist
                 .addClass('editable')
                 .attr( 'title', size + 'px · Click to edit this distance' )
-                .data( 'guideLinrDistanceEdit', {
+                .data( 'pixelStudioDistanceEdit', {
                     size: size
                     , targetGuide: targetGuide
                     , moveDirection: moveDirection || 1
@@ -1141,7 +1141,7 @@
                                     + ( !guides[i] ? vertWidth : 0 ) // for the one on the leftmost
                                     - ( !guides[i+1] ? vertWidth : 0 ); // for the one on the rightmost
                         var dist = $('<div>')
-                            .addClass('guideLinr-distance')
+                            .addClass('pixelStudio-distance')
                             .css({
                                 left: ( ( pos2 + offset ) - scrollLeft ) + 'px'
                                 , top: top + 'px'
@@ -1170,7 +1170,7 @@
                                     + ( !guides[i] ? horzHeight : 0 ) // for the one at the very top
                                     - ( !guides[i+1] ? horzHeight : 0 ); // for the one at the very bottom
                         var dist = $('<div>')
-                            .addClass('guideLinr-distance horz')
+                            .addClass('pixelStudio-distance horz')
                             .css({
                                 top: ( ( pos2 + offset ) - scrollTop ) + 'px'
                                 , left: left + 'px'
@@ -1193,15 +1193,15 @@
             log('Activating distances');
             this.deactivate();
             this._debouncedDraw = this.debouncedDraw.bind(this);
-            $(document.body).on( 'guideLinrMoved.guideLinr', this._debouncedDraw );
+            $(document.body).on( 'pixelStudioMoved.pixelStudio', this._debouncedDraw );
             $(window).on( 'scroll', this._debouncedDraw );
             this.draw();
         }
         , deactivate: function() {
             log('Deactivating distances');
             $(document.body)
-                .off( 'guideLinrMoved.guideLinr', this._debouncedDraw )
-                .off('.guideLinr');
+                .off( 'pixelStudioMoved.pixelStudio', this._debouncedDraw )
+                .off('.pixelStudio');
             $(window).off( 'scroll', this._debouncedDraw );
             this.removeAll();
             delete this._debouncedDraw;
@@ -1287,10 +1287,10 @@
             this.hideOutline();
             if ( !target )
                 return;
-            target.addClass('guideLinr-element-highlight');
+            target.addClass('pixelStudio-element-highlight');
         }
         , hideOutline: function() {
-            $('.guideLinr-element-highlight').removeClass('guideLinr-element-highlight');
+            $('.pixelStudio-element-highlight').removeClass('pixelStudio-element-highlight');
         }
         , addGuideByElement: function( color, top, right, bottom, left ) {
             this.hideOutline();
@@ -1341,25 +1341,25 @@
         }
         , render: function() {
             this._ = $('<div>')
-                .addClass('guideLinr-settings-root hidden')
+                .addClass('pixelStudio-settings-root hidden')
                 .appendTo( document.body );
 
             this.$toggle = $('<button type="button">')
-                .addClass('guideLinr-settings-toggle')
+                .addClass('pixelStudio-settings-toggle')
                 .attr( 'title', 'Abrir ajustes rápidos de PixelFromen Studio' )
                 .append(
                     $('<span>')
-                        .addClass('guideLinr-settings-toggle-icon')
+                        .addClass('pixelStudio-settings-toggle-icon')
                         .text('⚙')
                 )
                 .appendTo( this._ );
 
             this.$panel = $('<div>')
-                .addClass('guideLinr-settings-panel')
+                .addClass('pixelStudio-settings-panel')
                 .appendTo( this._ );
 
             this.$help = $('<div>')
-                .addClass('guideLinr-settings-help')
+                .addClass('pixelStudio-settings-help')
                 .append(
                     $('<p>').html('<strong>Atajos rápidos</strong>: usa los comandos de la extensión para crear guías, abrir estos ajustes y limpiar la página.')
                     , $('<p>').html('<strong>Atajos sobre la página</strong>: <strong>Alt/Option + Shift + I</strong> limpia verticales · <strong>+ L</strong> horizontales · <strong>+ D</strong> activa el borrado múltiple.')
@@ -1374,40 +1374,40 @@
             this.$panel
                 .append(
                     $('<div>')
-                        .addClass('guideLinr-settings-panel-header')
+                        .addClass('pixelStudio-settings-panel-header')
                         .append(
                             $('<div>')
                                 .append(
                                     $('<div>')
-                                        .addClass('guideLinr-settings-title')
+                                        .addClass('pixelStudio-settings-title')
                                         .text('PixelFromen Studio')
                                     , $('<div>')
-                                        .addClass('guideLinr-settings-subtitle')
+                                        .addClass('pixelStudio-settings-subtitle')
                                         .text('Controles rápidos sobre la página')
                                 )
                             , $('<div>')
-                                .addClass('guideLinr-settings-header-actions')
+                                .addClass('pixelStudio-settings-header-actions')
                                 .append(
-                                    $('<button type="button" class="guideLinr-settings-icon-button" data-action="toggle-help" title="Información">').text('i')
-                                    , $('<button type="button" class="guideLinr-settings-icon-button" data-action="hide-widget" title="Ocultar controles flotantes">').text('×')
+                                    $('<button type="button" class="pixelStudio-settings-icon-button" data-action="toggle-help" title="Información">').text('i')
+                                    , $('<button type="button" class="pixelStudio-settings-icon-button" data-action="hide-widget" title="Ocultar controles flotantes">').text('×')
                                 )
                         )
                 )
                 .append(
                     $('<label>')
-                        .addClass('guideLinr-settings-field checkbox')
+                        .addClass('pixelStudio-settings-field checkbox')
                         .append(
                             $('<input type="checkbox" data-setting="showDistances">')
                             , $('<span>').text('Mostrar distancias entre guías')
                         )
                     , $('<label>')
-                        .addClass('guideLinr-settings-field checkbox')
+                        .addClass('pixelStudio-settings-field checkbox')
                         .append(
                             $('<input type="checkbox" data-setting="doContextMenu">')
                             , $('<span>').text('Activar acciones en el menú contextual')
                         )
                     , $('<label>')
-                        .addClass('guideLinr-settings-field')
+                        .addClass('pixelStudio-settings-field')
                         .append(
                             this.buildFieldHeading(
                                 'Retícula de movimiento'
@@ -1417,7 +1417,7 @@
                                 .append( this.buildGridSnapOptions() )
                         )
                     , $('<label>')
-                        .addClass('guideLinr-settings-field')
+                        .addClass('pixelStudio-settings-field')
                         .append(
                             this.buildFieldHeading(
                                 'Sensibilidad del imán a bordes'
@@ -1428,45 +1428,45 @@
                                 .append( this.buildEdgeSnapOptions() )
                         )
                     , $('<div>')
-                        .addClass('guideLinr-settings-field')
+                        .addClass('pixelStudio-settings-field')
                         .append(
                             $('<span>').text('Color de guía')
                             , $('<div>')
-                                .addClass('guideLinr-settings-color-controls')
+                                .addClass('pixelStudio-settings-color-controls')
                                 .append(
                                     $('<div>')
-                                        .addClass('guideLinr-settings-swatches')
+                                        .addClass('pixelStudio-settings-swatches')
                                         .append( this.buildPresetSwatches() )
                                     , $('<div>')
-                                        .addClass('guideLinr-settings-color-row')
+                                        .addClass('pixelStudio-settings-color-row')
                                         .append(
-                                            $('<input type="color" class="guideLinr-settings-color-picker">')
-                                            , $('<input type="text" class="guideLinr-settings-color-text" placeholder="rgb(197, 10, 235) o #c50aeb">')
+                                            $('<input type="color" class="pixelStudio-settings-color-picker">')
+                                            , $('<input type="text" class="pixelStudio-settings-color-text" placeholder="rgb(197, 10, 235) o #c50aeb">')
                                             , $('<span>')
-                                                .addClass('guideLinr-settings-color-preview')
+                                                .addClass('pixelStudio-settings-color-preview')
                                         )
                                 )
                         )
                     , $('<div>')
-                        .addClass('guideLinr-settings-actions')
+                        .addClass('pixelStudio-settings-actions')
                         .append(
                             $('<button type="button" data-action="add-vert">').text('Añadir vertical')
                             , $('<button type="button" data-action="add-horz">').text('Añadir horizontal')
-                            , $('<button type="button" data-action="toggle-delete-mode" class="guideLinr-settings-delete-toggle">').text('Borrado múltiple')
-                            , $('<button type="button" data-action="clear-guides" class="guideLinr-settings-button-danger">').text('Limpiar página')
+                            , $('<button type="button" data-action="toggle-delete-mode" class="pixelStudio-settings-delete-toggle">').text('Borrado múltiple')
+                            , $('<button type="button" data-action="clear-guides" class="pixelStudio-settings-button-danger">').text('Limpiar página')
                             , $('<button type="button" data-action="clear-vert">').text('Limpiar verticales')
                             , $('<button type="button" data-action="clear-horz">').text('Limpiar horizontales')
                         )
-                    , $('<button type="button" class="guideLinr-settings-clear" data-action="hide-widget">')
+                    , $('<button type="button" class="pixelStudio-settings-clear" data-action="hide-widget">')
                         .text('Ocultar controles flotantes')
                     , $('<div>')
-                        .addClass('guideLinr-settings-shortcuts')
+                        .addClass('pixelStudio-settings-shortcuts')
                         .text('Consejo: puedes volver a mostrar estos controles desde el popup o con el atajo de ajustes.')
                 );
 
-            this.$colorPreview = this.$panel.find('.guideLinr-settings-color-preview');
-            this.$colorPicker = this.$panel.find('.guideLinr-settings-color-picker');
-            this.$colorText = this.$panel.find('.guideLinr-settings-color-text');
+            this.$colorPreview = this.$panel.find('.pixelStudio-settings-color-preview');
+            this.$colorPicker = this.$panel.find('.pixelStudio-settings-color-picker');
+            this.$colorText = this.$panel.find('.pixelStudio-settings-color-text');
             this.applyLauncherPosition( this.getDefaultLauncherPosition() );
         }
         , bindEvents: function() {
@@ -1487,7 +1487,7 @@
             this.$panel.on( 'mousedown click', this._panelPointerDown );
             this.$panel.on( 'change', '[data-setting]', this.handleControlChange.bind(this) );
             this.$panel.on( 'click', '[data-action]', this.handleActionClick.bind(this) );
-            this.$panel.on( 'click', '.guideLinr-settings-swatch', this.handleSwatchClick.bind(this) );
+            this.$panel.on( 'click', '.pixelStudio-settings-swatch', this.handleSwatchClick.bind(this) );
             this.$colorPicker.on( 'input change', this.handleColorPickerChange.bind(this) );
             this.$colorText
                 .on( 'input', this.handleColorTextInput.bind(this) )
@@ -1501,13 +1501,13 @@
 
             $(document).on( 'mousedown', this._documentPointerDown );
             $(window).on( 'resize', this._windowResize );
-            $(document.body).on( 'guideLinrDeleteModeChanged', this._deleteModeChanged );
+            $(document.body).on( 'pixelStudioDeleteModeChanged', this._deleteModeChanged );
             chrome.storage.onChanged.addListener( this._storageChanged );
         }
         , buildPresetSwatches: function() {
             return $.map( presetColors, function( preset ) {
                 return $('<button type="button">')
-                    .addClass('guideLinr-settings-swatch')
+                    .addClass('pixelStudio-settings-swatch')
                     .attr({
                         'data-color': preset.value
                         , 'title': preset.name + ' · ' + preset.value
@@ -1517,11 +1517,11 @@
         }
         , buildFieldHeading: function( text, tooltip, alignRight ) {
             return $('<span>')
-                .addClass('guideLinr-settings-label-row')
+                .addClass('pixelStudio-settings-label-row')
                 .append(
                     $('<span>').text( text )
                     , $('<button type="button">')
-                        .addClass('guideLinr-settings-inline-info' + ( alignRight ? ' guideLinr-settings-inline-info-right' : '' ))
+                        .addClass('pixelStudio-settings-inline-info' + ( alignRight ? ' pixelStudio-settings-inline-info-right' : '' ))
                         .attr({
                             'aria-label': 'Información sobre ' + text.toLowerCase()
                             , 'data-tooltip': tooltip
@@ -1597,7 +1597,7 @@
             this.$colorPicker.val( colorToHex( this.settings.selectedColor ) );
             this.$colorText.val( this.settings.selectedColor );
             this.updateColorPreview( this.settings.selectedColor, true );
-            this.$panel.find('.guideLinr-settings-swatch').removeClass('active').filter(function() {
+            this.$panel.find('.pixelStudio-settings-swatch').removeClass('active').filter(function() {
                 return colorToHex( $(this).data('color') ) == colorToHex( normalizeCssColor( this.settings.selectedColor ) );
             }.bind(this)).addClass('active');
             this.renderDeleteModeState();
@@ -1687,7 +1687,7 @@
         }
         , renderDeleteModeState: function() {
             this.$panel
-                .find('.guideLinr-settings-delete-toggle')
+                .find('.pixelStudio-settings-delete-toggle')
                 .toggleClass( 'active', deleteMode.isActive() )
                 .text( deleteMode.isActive() ? 'Cancelar borrado múltiple' : 'Borrado múltiple' );
         }
@@ -1846,7 +1846,7 @@
             if ( !this.visible )
                 return;
 
-            if ( $(ev.target).closest('.guideLinr-settings-root').length )
+            if ( $(ev.target).closest('.pixelStudio-settings-root').length )
                 return;
 
             this.closePanel();
