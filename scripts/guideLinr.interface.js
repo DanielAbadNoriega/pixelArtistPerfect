@@ -9,8 +9,12 @@ $(function() {
 
     var store = 'localStorage' in window && window['localStorage'] !== null ? window.localStorage : {};
 
+    if ( !store.showDistances )
+        store.showDistances = 'true';
+
     ({
         init: function() {
+            var showDistancesChecked = store.showDistances != 'false';
 
             log('init');
             $('#addGuideLineVert').on( 'click', function() {
@@ -26,7 +30,7 @@ $(function() {
                 .trigger('change');
             $('#show_distances')
                 .on( 'change', this.distancesChange.bind(this) )
-                [store.showDistances == 'true' ? 'attr' : 'removeAttr']( 'checked', 'checked' );
+                .prop( 'checked', showDistancesChecked );
             $('#context_menu')
                 .on( 'change', this.contextMenuChange.bind(this) )
                 [store.doContextMenu == 'true' ? 'attr' : 'removeAttr']( 'checked', 'checked' );
@@ -36,6 +40,12 @@ $(function() {
             $('#snap_to_els')
                 .on( 'change', this.snapElsChange.bind(this) )
                 .val( store.snapToEls || '' );
+
+            this.distancesChange({
+                target: {
+                    checked: showDistancesChecked
+                }
+            });
         }
         , messageAllTabs: function( message ) {
             chrome.tabs.query( {}, function(tabs) { // all opened tabs

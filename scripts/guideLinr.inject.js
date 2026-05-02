@@ -623,8 +623,9 @@
 
             var targetGuide = editor.editData.targetGuide
                 , snap = lines.getSnap()
+                , moveDirection = editor.editData.moveDirection || 1
                 , diff = nextValue - editor.editData.size
-                , nextPosition = Math.max( 0, targetGuide.getPosition() + diff );
+                , nextPosition = Math.max( 0, targetGuide.getPosition() + ( diff * moveDirection ) );
 
             targetGuide.snapPosition(
                 nextPosition
@@ -667,7 +668,7 @@
             }
             this.cache = [];
         }
-        , makeDistanceEditable: function( dist, size, targetGuide, placement ) {
+        , makeDistanceEditable: function( dist, size, targetGuide, moveDirection, placement ) {
             dist.append(
                 $('<span>')
                     .addClass('guideLinr-distance-label')
@@ -684,6 +685,7 @@
                 .data( 'guideLinrDistanceEdit', {
                     size: size
                     , targetGuide: targetGuide
+                    , moveDirection: moveDirection || 1
                 })
                 .on( 'click', function(ev) {
                     ev.preventDefault();
@@ -725,6 +727,8 @@
                         var pos1 = guides[i+1] ? guides[i+1].getPosition() : docWidth
                             , pos2 = guides[i] ? guides[i].getPosition() : 0
                             , offset = guides[i] ? vertWidth : 0
+                            , editableGuide = guides[i+1] || guides[i]
+                            , moveDirection = guides[i+1] ? 1 : -1
                             , wid = ( pos1 - pos2 )
                                     + ( !guides[i] ? vertWidth : 0 ) // for the one on the leftmost
                                     - ( !guides[i+1] ? vertWidth : 0 ); // for the one on the rightmost
@@ -735,7 +739,7 @@
                                 , top: top + 'px'
                                 , width: wid + 'px'
                             });
-                        this.makeDistanceEditable( dist, wid, guides[i+1] )
+                        this.makeDistanceEditable( dist, wid, editableGuide, moveDirection )
                             .appendTo( document.body );
                         this.cache.push( dist );
                     }
@@ -748,6 +752,8 @@
                         var pos1 = guides[i+1] ? guides[i+1].getPosition() : docHeight
                             , pos2 = guides[i] ? guides[i].getPosition() : 0
                             , offset = guides[i] ? horzHeight : 0
+                            , editableGuide = guides[i+1] || guides[i]
+                            , moveDirection = guides[i+1] ? 1 : -1
                             , hei = ( pos1 - pos2 )
                                     + ( !guides[i] ? horzHeight : 0 ) // for the one at the very top
                                     - ( !guides[i+1] ? horzHeight : 0 ); // for the one at the very bottom
@@ -758,7 +764,7 @@
                                 , left: left + 'px'
                                 , height: hei + 'px'
                             });
-                        this.makeDistanceEditable( dist, hei, guides[i+1] )
+                        this.makeDistanceEditable( dist, hei, editableGuide, moveDirection )
                             .appendTo( document.body );
                         this.cache.push( dist );
                     }
