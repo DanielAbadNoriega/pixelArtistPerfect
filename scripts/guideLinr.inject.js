@@ -546,19 +546,24 @@
         }
     };
 
+    var dialogIcons = {
+        delete: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6m-9 4h12M8 7l1 12h6l1-12M10 10v6M14 10v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
+        , rotate: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
+        , color: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c4.97 0 9 3.36 9 7.5 0 2.6-1.74 4.16-4.16 4.16h-1.18a1.66 1.66 0 0 0-1.66 1.66c0 .35.1.69.28.99.4.65.22 1.49-.41 1.93A3.88 3.88 0 0 1 11.56 20C6.83 20 3 16.19 3 11.5 3 6.81 7.03 3 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="8.5" cy="10" r="1" fill="currentColor"></circle><circle cx="12" cy="8" r="1" fill="currentColor"></circle><circle cx="15.5" cy="10" r="1" fill="currentColor"></circle></svg>'
+        , close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 9l-6 6M9 9l6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
+        , custom: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
+    };
+
     var dialog = function( line, mouseEvent ) {
         if ( line._dialog )
             return; // this line already has a dialog!
 
         this.line = line;
         this.icons = {};
+        this.$colorPopover = null;
+        this._suspendAutoClose = false;
         this._ = $('<div>')
                     .addClass('guideLinr-dialog ' + line._dir)
-                    .append(
-                        (this.icons.del = this.createIcon('delete', 'Remove Guide'))
-                        , (this.icons.rot = this.createIcon('rotate', 'Rotate Guide'))
-                        , (this.icons.color = this.createIcon('color', 'Change Color'))
-                    )
                     .appendTo( document.body );
 
         if ( this.line._dir == 'vert' ) {
@@ -585,26 +590,9 @@
             .addClass('glow')
             .on( 'mouseout', this._mouseOut )
             .on( 'mouseover', this._mouseOver );
+        this.renderDefaultActions();
 
-        this.icons.del.on( 'click', function() {
-            this.line.destroy();
-            this.destroy();
-        }.bind(this));
-
-        this.icons.rot.on( 'click', function( ev ) {
-            this.destroy();
-            var goingVert = this.line._dir == 'horz';
-            this.line._dir = goingVert ? 'vert' : 'horz';
-            this.line._
-                .removeClass( goingVert ? 'horz' : 'vert' )
-                .addClass( goingVert ? 'vert' : 'horz' );
-            this.line.resizeRoutineHeavy();
-            this.line.dragMouseMove( ev );
-        }.bind(this));
-
-        this.icons.color.on( 'click', this.clickColor.bind(this) );
-
-        this._.on( 'click', 'i', function(ev) {
+        this._.on( 'click', '.guideLinr-icon, .guideLinr-dialog-color-picker', function(ev) {
             setTimeout( function() {
                 this.line.focusTo(); // so keyboard events will still work after orientation switch
             }.bind(this), 0 );
@@ -612,12 +600,16 @@
     }
     dialog.prototype = {
         mouseOut: function() {
+            clearTimeout( this._timer );
+            if ( this._suspendAutoClose )
+                return;
             this._timer = setTimeout( this.destroy.bind(this), 500 );
         }
         , mouseOver: function() {
             clearTimeout( this._timer );
         }
         , destroy: function() {
+            this.destroyColorPopover();
             this._
                 .off( 'mouseout', this._mouseOut )
                 .off( 'mouseover', this._mouseOver )
@@ -632,35 +624,132 @@
         }
 
         , createIcon: function( addOnClass, title ) {
-            var icon = $('<i>').text(' ').addClass('guideLinr-icon ' + addOnClass);
+            var icon = $('<button type="button">')
+                .addClass('guideLinr-icon guideLinr-icon-button ' + addOnClass)
+                .html( dialogIcons[addOnClass] || '' );
             if ( title )
                 icon.attr('title', title);
             return icon;
         }
+        , clearContent: function() {
+            this.destroyColorPopover();
+            this._.children().remove();
+        }
+        , suspendAutoClose: function( shouldSuspend ) {
+            this._suspendAutoClose = !!shouldSuspend;
+            if ( shouldSuspend )
+                clearTimeout( this._timer );
+        }
+        , destroyColorPopover: function() {
+            this.suspendAutoClose( false );
+            if ( this.$colorPopover ) {
+                this.$colorPopover.remove();
+                this.$colorPopover = null;
+            }
+            if ( this.icons.color )
+                this.icons.color.removeClass('active');
+        }
+        , applyLineColor: function( color ) {
+            this.line.setColor( color );
+            this.line.save();
+            this.line.fireMovedEvent();
+        }
+        , renderDefaultActions: function() {
+            this.clearContent();
+
+            this.icons.del = this.createIcon('delete', 'Eliminar guía')
+                .appendTo( this._ )
+                .on( 'click', function() {
+                    this.line.destroy();
+                    this.destroy();
+                }.bind(this));
+
+            this.icons.rot = this.createIcon('rotate', 'Rotar guía')
+                .appendTo( this._ )
+                .on( 'click', function( ev ) {
+                    this.destroy();
+                    var goingVert = this.line._dir == 'horz';
+                    this.line._dir = goingVert ? 'vert' : 'horz';
+                    this.line._
+                        .removeClass( goingVert ? 'horz' : 'vert' )
+                        .addClass( goingVert ? 'vert' : 'horz' );
+                    this.line.resizeRoutineHeavy();
+                    this.line.dragMouseMove( ev );
+                }.bind(this));
+
+            this.icons.color = this.createIcon('color', 'Cambiar color')
+                .appendTo( this._ )
+                .on( 'click', this.clickColor.bind(this));
+        }
 
         , clickColor: function() {
-            this._.find('i, input').remove();
+            if ( this.$colorPopover ) {
+                this.destroyColorPopover();
+                return;
+            }
+
+            var popover = $('<div>')
+                .addClass('guideLinr-dialog-color-popover')
+                .appendTo( this._ );
+
+            this.$colorPopover = popover;
+            this.icons.color.addClass('active');
+
+            this.createIcon('close', 'Cerrar paleta')
+                .appendTo( popover )
+                .on( 'click', function( ev ) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    this.destroyColorPopover();
+                }.bind(this) );
+
             for ( var i = 0, len = presetColors.length; i < len; i++ ) {
-                this.createIcon('custom-color')
-                    .appendTo( this._ )
+                $('<button type="button">')
+                    .addClass('guideLinr-icon guideLinr-icon-button custom-color-swatch')
+                    .appendTo( popover )
                     .attr( 'title', presetColors[i].name )
                     .css( 'background-color', presetColors[i].value )
                     .data('color', presetColors[i].value)
+                    .toggleClass( 'active', colorToHex( presetColors[i].value ) == colorToHex( this.line._color ) )
                     .on( 'click', function( ev ) {
-                        this.line.setColor( $(ev.target).data('color') );
-                        this.line.save();
-                        this.line.fireMovedEvent();
+                        this.applyLineColor( $(ev.currentTarget).data('color') );
+                        this.destroyColorPopover();
                     }.bind(this) );
             }
 
+            var customPicker = $('<label>')
+                .addClass('guideLinr-dialog-color-picker-shell')
+                .attr( 'title', 'Elegir color personalizado' )
+                .append(
+                    $('<span>')
+                        .addClass('guideLinr-dialog-color-picker-preview')
+                        .css( 'background-color', this.line._color )
+                    , $('<span>')
+                        .addClass('guideLinr-dialog-color-picker-icon')
+                        .html( dialogIcons.custom )
+                )
+                .appendTo( popover );
+
             $('<input type="color" class="guideLinr-dialog-color-picker">')
+                .attr( 'title', 'Elegir color personalizado' )
                 .val( colorToHex( this.line._color ) )
-                .appendTo( this._ )
-                .on( 'input change', function( ev ) {
-                    this.line.setColor( ev.target.value );
-                    this.line.save();
-                    this.line.fireMovedEvent();
+                .appendTo( customPicker )
+                .on( 'mousedown click focus', function() {
+                    this.suspendAutoClose( true );
+                }.bind(this) )
+                .on( 'input', function( ev ) {
+                    customPicker.find('.guideLinr-dialog-color-picker-preview').css( 'background-color', ev.target.value );
+                    this.applyLineColor( ev.target.value );
+                }.bind(this) )
+                .on( 'change blur', function() {
+                    setTimeout(function() {
+                        this.destroyColorPopover();
+                    }.bind(this), 0);
                 }.bind(this) );
+
+            popover.on( 'click', function( ev ) {
+                ev.stopPropagation();
+            });
         }
     };
 

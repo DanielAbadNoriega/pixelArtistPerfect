@@ -102,13 +102,23 @@
 /* #### DIALOG #### */
 .guideLinr-dialog {
     position: absolute;
-    background-color: white;
-    border-radius: 3px;
-    box-shadow: 0 0 5px 0px #444;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow:
+        0 12px 32px rgba(15, 23, 42, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     z-index: 999999999;
 }
 .guideLinr-dialog:hover {
-    box-shadow: 0 0 5px 1px #333;
+    box-shadow:
+        0 16px 38px rgba(15, 23, 42, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 .guideLinr-dialog:after {
     content: ' ';
@@ -120,25 +130,65 @@
     clear: both;
 }
 .guideLinr-icon {
-    width: 16px;
-    height: 16px;
-    background-repeat: no-repeat;
-    background-position: 50% 50%;
-    display: block;
-    margin: 4px;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
     cursor: pointer;
-    opacity: 0.7;
+    opacity: 1;
 }
 .guideLinr-icon:hover {
     opacity: 1;
 }
-
-.guideLinr-dialog.vert .guideLinr-icon {
-    margin: 8px 4px;
+.guideLinr-dialog.vert {
+    flex-direction: column;
 }
-.guideLinr-dialog.horz .guideLinr-icon {
-    float: left;
-    margin: 4px 6px;
+.guideLinr-dialog.horz {
+    flex-direction: row;
+}
+.guideLinr-icon-button {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.26);
+    color: #f8fafc;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 6px 18px rgba(15, 23, 42, 0.18);
+    transition:
+        transform 0.18s ease,
+        background-color 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease;
+}
+.guideLinr-icon-button:hover {
+    transform: translateY(-1px);
+    background: rgba(15, 23, 42, 0.36);
+    border-color: rgba(255, 255, 255, 0.34);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 10px 22px rgba(15, 23, 42, 0.24);
+}
+.guideLinr-icon-button:focus {
+    outline: 2px solid rgba(96, 165, 250, 0.72);
+    outline-offset: 2px;
+}
+.guideLinr-icon-button.active {
+    background: rgba(15, 23, 42, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 10px 22px rgba(15, 23, 42, 0.24);
+}
+.guideLinr-icon-button svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+    pointer-events: none;
 }
 .guideLinr-icon.delete {
     /* ## OLD BW ICONS
@@ -174,6 +224,92 @@
 .guideLinr-icon.red { background-color: red; }
 .guideLinr-icon.pink { background-color: pink; }
 
+.guideLinr-icon-button.delete,
+.guideLinr-icon-button.rotate,
+.guideLinr-icon-button.color {
+    background-image: none !important;
+}
+.guideLinr-icon-button.custom-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    border-color: rgba(255, 255, 255, 0.34);
+}
+.guideLinr-icon-button.close {
+    flex: 0 0 auto;
+}
+.guideLinr-dialog-color-popover {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow:
+        0 12px 28px rgba(15, 23, 42, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+.guideLinr-dialog.vert .guideLinr-dialog-color-popover {
+    left: calc(100% + 8px);
+    top: 0;
+}
+.guideLinr-dialog.horz .guideLinr-dialog-color-popover {
+    left: 0;
+    top: calc(100% + 8px);
+}
+.custom-color-swatch {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 4px 12px rgba(15, 23, 42, 0.16);
+}
+.custom-color-swatch.active {
+    outline: 2px solid rgba(255, 255, 255, 0.68);
+    outline-offset: 1px;
+}
+
+.guideLinr-dialog-color-picker-shell {
+    position: relative;
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.18);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 4px 12px rgba(15, 23, 42, 0.16);
+    cursor: pointer;
+    overflow: hidden;
+}
+.guideLinr-dialog-color-picker-preview,
+.guideLinr-dialog-color-picker-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+.guideLinr-dialog-color-picker-preview {
+    opacity: 0.95;
+}
+.guideLinr-dialog-color-picker-icon {
+    color: #f8fafc;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.02), rgba(15, 23, 42, 0.26));
+    text-shadow: 1px 1px 2px black;
+}
+.guideLinr-dialog-color-picker-icon svg {
+    width: 12px;
+    height: 12px;
+}
 
 .guideLinr-distance, .guideLinr-distance.lime {
   position: fixed;
@@ -526,18 +662,26 @@
     opacity: 0.92;
 }
 
-.guideLinr-icon.custom-color {
-    border-radius: 999px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
-}
 .guideLinr-dialog-color-picker {
-    display: block;
-    width: calc(100% - 12px);
-    margin: 6px;
+    position: absolute;
+    inset: 0;
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
     padding: 0;
+    cursor: pointer;
+    opacity: 0;
     border: 0;
     background: transparent;
-    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.guideLinr-dialog-color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+.guideLinr-dialog-color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 999px;
 }
 
 .guideLinr-delete-mode .guideLinr-line {
