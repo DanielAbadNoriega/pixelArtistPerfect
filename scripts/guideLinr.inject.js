@@ -680,7 +680,7 @@
 
             dist
                 .addClass('editable')
-                .attr( 'title', 'Click to edit this distance' )
+                .attr( 'title', size + 'px · Click to edit this distance' )
                 .data( 'guideLinrDistanceEdit', {
                     size: size
                     , targetGuide: targetGuide
