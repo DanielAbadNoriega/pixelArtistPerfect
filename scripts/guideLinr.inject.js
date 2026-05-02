@@ -8,16 +8,53 @@
         return console.log.apply( console, args );
     };
 
-    var colors = [
-        'lime'
-        , 'aqua'
-        , 'blue'
-        , 'green'
-        , 'yellow'
-        , 'orange'
-        , 'red'
-        , 'pink'
+    var COLOR_VERSION = 2;
+    var LEGACY_DEFAULT_COLOR = '#84cc16';
+    var presetColors = [
+        { name: 'Rojo', value: '#ef4444' }
+        , { name: 'Verde', value: '#84cc16' }
+        , { name: 'Amarillo', value: '#facc15' }
+        , { name: 'Azul', value: '#60a5fa' }
+        , { name: 'Turquesa', value: '#22d3ee' }
     ];
+    var colors = presetColors.map(function( preset ) {
+        return preset.value;
+    });
+
+    var defaultSettings = {
+        showDistances: true
+        , doContextMenu: true
+        , snapToPx: ''
+        , snapToEls: ''
+        , selectedColor: '#ef4444'
+        , selectedColorVersion: COLOR_VERSION
+        , settingsLauncherPosition: null
+    };
+
+    var isValidCssColor = function( value ) {
+        var style = document.createElement('span').style;
+        style.color = '';
+        style.color = $.trim( value || '' );
+        return !!style.color;
+    };
+
+    var normalizeCssColor = function( value ) {
+        var style = document.createElement('span').style
+            , nextValue = $.trim( value || '' );
+
+        if ( !nextValue )
+            return defaultSettings.selectedColor;
+
+        style.color = '';
+        style.color = nextValue;
+        return style.color || defaultSettings.selectedColor;
+    };
+
+    var colorToHex = function( value ) {
+        var canvas = document.createElement('canvas').getContext('2d');
+        canvas.fillStyle = normalizeCssColor( value );
+        return canvas.fillStyle || defaultSettings.selectedColor;
+    };
 
     var lines = ({
         register: function( line ) {
@@ -40,6 +77,20 @@
                     callback( this.list[id] ); // this is simpler (and faster), so if you don't need the above cool complexity, leave it out
                 }
             //log( 'lines.withAll() :: DONE', this.list ); // too aggressive!
+        }
+        , getAll: function( dir ) {
+            var arr = [];
+            this.withAll(function( guide ) {
+                if ( !dir || guide._dir == dir )
+                    arr.push( guide );
+            });
+            return arr;
+        }
+        , clear: function( dir ) {
+            var guides = this.getAll( dir );
+            for ( var i = 0, len = guides.length; i < len; i++ )
+                guides[i].destroy();
+            return guides.length;
         }
 
         , _snap: 0
@@ -103,12 +154,12 @@
                         var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
                         return v.toString(16);
                     });
-        this._color = options.color;
+        this._color = normalizeCssColor( options.color );
 
         //log( 'options: ', options );
 
         this._ = $('<div>')
-                    .addClass( [ 'guideLinr-line', this._dir, options.color ].join(' ') )
+                    .addClass( [ 'guideLinr-line', this._dir ].join(' ') )
                     .attr( 'tabIndex', '0' ) // so it can receive keyboard focus
                     .on( 'mousedown', this.dragMouseDown.bind(this) )
                     .on( 'mousemove', this.dialogMouseMove.bind(this) )
@@ -117,6 +168,9 @@
                     .on( 'keydown', this.keyDown.bind(this) )
                     .appendTo( document.body )
                     .fadeIn('fast');
+        this._.data( 'guideLinrLine', this );
+
+        this.setColor( this._color );
 
         this.resizeRoutineHeavy();
 
@@ -161,6 +215,14 @@
         
         , focusTo: function() {
             this._.focus();
+        }
+        , setColor: function( color ) {
+            this._color = normalizeCssColor( color );
+            this._.css({
+                '--guide-line-color': this._color
+                , color: this._color
+            });
+            return this;
         }
 
         , resizeRoutineHeavy: function() {
@@ -249,6 +311,14 @@
         }
 
         , dragMouseDown: function(ev) {
+            if ( deleteMode.isActive() ) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                this.destroy();
+                deleteMode.deactivate();
+                return;
+            }
+
             ev.preventDefault();
             ev.stopPropagation();
 
@@ -342,6 +412,13 @@
             this.fireMovedEvent();
         }
         , keyDown: function( ev ) {
+            if ( ev.keyCode == 8 || ev.keyCode == 46 ) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                this.destroy();
+                return;
+            }
+
             if ( ev.keyCode < 37 || ev.keyCode > 40 ) {
                 return; // not arrow key, so return;
             }
@@ -495,23 +572,87 @@
         }
 
         , clickColor: function() {
-            this._.find('i').remove();;
-            for ( var i = 0, len = colors.length; i < len; i++ ) {
-                this.createIcon(colors[i])
+            this._.find('i, input').remove();
+            for ( var i = 0, len = presetColors.length; i < len; i++ ) {
+                this.createIcon('custom-color')
                     .appendTo( this._ )
-                    .data('color', colors[i])
+                    .attr( 'title', presetColors[i].name )
+                    .css( 'background-color', presetColors[i].value )
+                    .data('color', presetColors[i].value)
                     .on( 'click', function( ev ) {
-                        var newColor = $(ev.target).data('color');
-                        this.line._
-                            .removeClass( colors.join(' ') )
-                            .addClass( newColor )
-                        this.line._color = newColor;
+                        this.line.setColor( $(ev.target).data('color') );
                         this.line.save();
                         this.line.fireMovedEvent();
                     }.bind(this) );
             }
+
+            $('<input type="color" class="guideLinr-dialog-color-picker">')
+                .val( colorToHex( this.line._color ) )
+                .appendTo( this._ )
+                .on( 'input change', function( ev ) {
+                    this.line.setColor( ev.target.value );
+                    this.line.save();
+                    this.line.fireMovedEvent();
+                }.bind(this) );
         }
     };
+
+    var clearGuidesByDirection = function( dir ) {
+        deleteMode.deactivate();
+        lines.clear( dir );
+    };
+
+    var deleteMode = ({
+        active: false
+        , init: function() {
+            this.body = $(document.body);
+            this.render();
+            this.bindEvents();
+            return this;
+        }
+        , render: function() {
+            this.$badge = $('<div>')
+                .addClass('guideLinr-delete-badge')
+                .text('Modo borrar activo · haz clic en una guía · Esc cancela')
+                .appendTo( document.body )
+                .hide();
+        }
+        , bindEvents: function() {
+            this._onKeyDown = this.onKeyDown.bind(this);
+            $(document).on( 'keydown', this._onKeyDown );
+        }
+        , onKeyDown: function( ev ) {
+            if ( this.active && ev.keyCode == 27 ) {
+                ev.preventDefault();
+                this.deactivate();
+            }
+        }
+        , isActive: function() {
+            return !!this.active;
+        }
+        , activate: function() {
+            if ( this.active )
+                return;
+            this.active = true;
+            this.body.addClass('guideLinr-delete-mode');
+            this.$badge.stop(true, true).fadeIn('fast');
+            this.body.trigger( 'guideLinrDeleteModeChanged', [ true ] );
+        }
+        , deactivate: function() {
+            if ( !this.active )
+                return;
+            this.active = false;
+            this.body.removeClass('guideLinr-delete-mode');
+            this.$badge.stop(true, true).fadeOut('fast');
+            this.body.trigger( 'guideLinrDeleteModeChanged', [ false ] );
+        }
+        , toggle: function() {
+            if ( this.active )
+                this.deactivate();
+            else
+                this.activate();
+        }
+    }).init();
 
 
     var distances = {
@@ -657,6 +798,24 @@
             }
             return returnArr;
         }
+        , getColorBuckets: function( guides ) {
+            var buckets = []
+                , lookup = {};
+
+            for ( var i = 0, len = guides.length; i < len; i++ ) {
+                var color = guides[i]._color;
+                if ( !lookup[color] ) {
+                    lookup[color] = [];
+                    buckets.push({
+                        color: color
+                        , guides: lookup[color]
+                    });
+                }
+                lookup[color].push( guides[i] );
+            }
+
+            return buckets;
+        }
 
         , removeAll: function() {
             this.destroyEditor();
@@ -719,10 +878,12 @@
                 , vertWidth = ordered.vert && ordered.vert[0] ? ordered.vert[0]._thickOffset : 0
                 , horzHeight = ordered.horz && ordered.horz[0] ? ordered.horz[0]._thickOffset : 0;
 
-            for ( var c = 0, clen = colors.length; c < clen; c++ ) {
-                var color = colors[c]
-                    , guides = this.limitArrayToColor( color, ordered.vert );
-                if ( guides.length ) { // if there are any guides this color...
+            var vertBuckets = this.getColorBuckets( ordered.vert )
+                , horzBuckets = this.getColorBuckets( ordered.horz );
+
+            for ( var c = 0, clen = vertBuckets.length; c < clen; c++ ) {
+                var guides = vertBuckets[c].guides;
+                if ( guides.length ) {
                     for ( var i = -1, ilen = guides.length; i < ilen; i++ ) {
                         var pos1 = guides[i+1] ? guides[i+1].getPosition() : docWidth
                             , pos2 = guides[i] ? guides[i].getPosition() : 0
@@ -733,7 +894,7 @@
                                     + ( !guides[i] ? vertWidth : 0 ) // for the one on the leftmost
                                     - ( !guides[i+1] ? vertWidth : 0 ); // for the one on the rightmost
                         var dist = $('<div>')
-                            .addClass('guideLinr-distance ' + color)
+                            .addClass('guideLinr-distance')
                             .css({
                                 left: ( ( pos2 + offset ) - scrollLeft ) + 'px'
                                 , top: top + 'px'
@@ -745,9 +906,11 @@
                     }
                     top += dist.height();
                 }
+            }
 
-                var guides = this.limitArrayToColor( color, ordered.horz );
-                if ( guides.length ) { // if there are any guides this color...
+            for ( var h = 0, hlen = horzBuckets.length; h < hlen; h++ ) {
+                var guides = horzBuckets[h].guides;
+                if ( guides.length ) {
                     for ( var i = -1, ilen = guides.length; i < ilen; i++ ) {
                         var pos1 = guides[i+1] ? guides[i+1].getPosition() : docHeight
                             , pos2 = guides[i] ? guides[i].getPosition() : 0
@@ -758,7 +921,7 @@
                                     + ( !guides[i] ? horzHeight : 0 ) // for the one at the very top
                                     - ( !guides[i+1] ? horzHeight : 0 ); // for the one at the very bottom
                         var dist = $('<div>')
-                            .addClass('guideLinr-distance horz ' + color)
+                            .addClass('guideLinr-distance horz')
                             .css({
                                 top: ( ( pos2 + offset ) - scrollTop ) + 'px'
                                 , left: left + 'px'
@@ -771,7 +934,6 @@
                     left += dist.width();
                 }
             }
-
         }
 
         , isActive: function() {
@@ -813,6 +975,7 @@
         }
         , activate: function() {
             log('activating context menu');
+            this.deactivate();
             $(document)
                 .on( 'contextmenu', this._onContextMenu )
                 .on( 'click', this._clearDataAndHide );
@@ -859,7 +1022,7 @@
                 return;
             log( 'Add guide from context at...', dir, this._target, this._event );
             new line( {
-                color: color || 'lime'
+                color: color || defaultSettings.selectedColor
                 , dir: dir
                 , pos: ( dir == 'horz' ? this._event.pageY : this._event.pageX ) - this.thickOffset
             }).focusTo();
@@ -882,14 +1045,14 @@
             
             if ( top )
                 new line( {
-                    color: color || 'lime'
+                    color: color || defaultSettings.selectedColor
                     , dir: 'horz'
                     , pos: ( offset.top ) - this.thickOffset
                 }).focusTo();
 
             if ( right )
                 new line( {
-                    color: color || 'lime'
+                    color: color || defaultSettings.selectedColor
                     , dir: 'vert'
                     , pos: ( offset.left + this._target.outerWidth() ) - this.thickOffset
                 }).focusTo();
@@ -897,17 +1060,574 @@
 
             if ( left )
                 new line( {
-                    color: color || 'lime'
+                    color: color || defaultSettings.selectedColor
                     , dir: 'vert'
                     , pos: offset.left - this.thickOffset
                 }).focusTo();
             
             if ( bottom )
                 new line( {
-                    color: color || 'lime'
+                    color: color || defaultSettings.selectedColor
                     , dir: 'horz'
                     , pos: ( offset.top + this._target.outerHeight() ) - this.thickOffset
                 }).focusTo();
+        }
+    }).init();
+
+    var settingsUi = ({
+        settings: $.extend( {}, defaultSettings )
+        , visible: false
+        , init: function() {
+            this.render();
+            this.bindEvents();
+            this.loadSettings();
+            return this;
+        }
+        , render: function() {
+            this._ = $('<div>')
+                .addClass('guideLinr-settings-root hidden')
+                .appendTo( document.body );
+
+            this.$toggle = $('<button type="button">')
+                .addClass('guideLinr-settings-toggle')
+                .attr( 'title', 'Abrir ajustes rápidos de PixelFromen Studio' )
+                .append(
+                    $('<span>')
+                        .addClass('guideLinr-settings-toggle-icon')
+                        .text('⚙')
+                )
+                .appendTo( this._ );
+
+            this.$panel = $('<div>')
+                .addClass('guideLinr-settings-panel')
+                .appendTo( this._ );
+
+            this.$help = $('<div>')
+                .addClass('guideLinr-settings-help')
+                .append(
+                    $('<p>').html('<strong>Atajos rápidos</strong>: usa los comandos de la extensión para crear guías, abrir estos ajustes y limpiar la página.')
+                    , $('<p>').html('<strong>Atajos sobre la página</strong>: <strong>Alt/Option + Shift + I</strong> limpia verticales · <strong>+ L</strong> horizontales · <strong>+ D</strong> activa el modo borrar.')
+                    , $('<p>').html('<strong>Borrar una guía</strong>: activa el modo borrar y haz clic en la guía que quieras quitar. <strong>Esc</strong> cancela.')
+                    , $('<p>').html('<strong>Menú contextual</strong>: agrega acciones al clic derecho para crear guías alrededor del elemento bajo el cursor.')
+                    , $('<p>').html('<strong>Ajustar a retícula</strong>: mueve las guías en saltos fijos de píxeles.')
+                    , $('<p>').html('<strong>Imantar a bordes</strong>: al arrastrar, la guía se pega al borde cercano de un elemento si está dentro del rango elegido.')
+                    , $('<p>').html('<strong>Más atajos</strong>: puedes verlos o personalizarlos desde el popup y en <code>chrome://extensions/shortcuts</code>.')
+                )
+                .appendTo( this.$panel );
+
+            this.$panel
+                .append(
+                    $('<div>')
+                        .addClass('guideLinr-settings-panel-header')
+                        .append(
+                            $('<div>')
+                                .append(
+                                    $('<div>')
+                                        .addClass('guideLinr-settings-title')
+                                        .text('PixelFromen Studio')
+                                    , $('<div>')
+                                        .addClass('guideLinr-settings-subtitle')
+                                        .text('Controles rápidos sobre la página')
+                                )
+                            , $('<div>')
+                                .addClass('guideLinr-settings-header-actions')
+                                .append(
+                                    $('<button type="button" class="guideLinr-settings-icon-button" data-action="toggle-help" title="Información">').text('i')
+                                    , $('<button type="button" class="guideLinr-settings-icon-button" data-action="hide-widget" title="Ocultar controles flotantes">').text('×')
+                                )
+                        )
+                )
+                .append(
+                    $('<label>')
+                        .addClass('guideLinr-settings-field checkbox')
+                        .append(
+                            $('<input type="checkbox" data-setting="showDistances">')
+                            , $('<span>').text('Mostrar distancias entre guías')
+                        )
+                    , $('<label>')
+                        .addClass('guideLinr-settings-field checkbox')
+                        .append(
+                            $('<input type="checkbox" data-setting="doContextMenu">')
+                            , $('<span>').text('Activar acciones en el menú contextual')
+                        )
+                    , $('<label>')
+                        .addClass('guideLinr-settings-field')
+                        .append(
+                            $('<span>').text('Ajustar guías a retícula')
+                            , $('<select data-setting="snapToPx">')
+                                .append(
+                                    $('<option value="">').text('No')
+                                    , $('<option value="5">').text('5px')
+                                    , $('<option value="10">').text('10px')
+                                    , $('<option value="15">').text('15px')
+                                    , $('<option value="20">').text('20px')
+                                    , $('<option value="25">').text('25px')
+                                    , $('<option value="50">').text('50px')
+                                    , $('<option value="100">').text('100px')
+                                )
+                        )
+                    , $('<label>')
+                        .addClass('guideLinr-settings-field')
+                        .append(
+                            $('<span>').text('Imantar a bordes al arrastrar')
+                            , $('<select data-setting="snapToEls">')
+                                .append(
+                                    $('<option value="">').text('No')
+                                    , $('<option value="5">').text('5px')
+                                    , $('<option value="10">').text('10px')
+                                    , $('<option value="15">').text('15px')
+                                    , $('<option value="20">').text('20px')
+                                )
+                        )
+                    , $('<div>')
+                        .addClass('guideLinr-settings-field')
+                        .append(
+                            $('<span>').text('Color de guía')
+                            , $('<div>')
+                                .addClass('guideLinr-settings-color-controls')
+                                .append(
+                                    $('<div>')
+                                        .addClass('guideLinr-settings-swatches')
+                                        .append( this.buildPresetSwatches() )
+                                    , $('<div>')
+                                        .addClass('guideLinr-settings-color-row')
+                                        .append(
+                                            $('<input type="color" class="guideLinr-settings-color-picker">')
+                                            , $('<input type="text" class="guideLinr-settings-color-text" placeholder="#ef4444 o rgb(239, 68, 68)">')
+                                            , $('<span>')
+                                                .addClass('guideLinr-settings-color-preview')
+                                        )
+                                )
+                        )
+                    , $('<div>')
+                        .addClass('guideLinr-settings-actions')
+                        .append(
+                            $('<button type="button" data-action="add-vert">').text('Añadir vertical')
+                            , $('<button type="button" data-action="add-horz">').text('Añadir horizontal')
+                            , $('<button type="button" data-action="toggle-delete-mode" class="guideLinr-settings-delete-toggle">').text('Borrar una guía')
+                            , $('<button type="button" data-action="clear-guides" class="guideLinr-settings-button-danger">').text('Limpiar página')
+                            , $('<button type="button" data-action="clear-vert">').text('Limpiar verticales')
+                            , $('<button type="button" data-action="clear-horz">').text('Limpiar horizontales')
+                        )
+                    , $('<button type="button" class="guideLinr-settings-clear" data-action="hide-widget">')
+                        .text('Ocultar controles flotantes')
+                    , $('<div>')
+                        .addClass('guideLinr-settings-shortcuts')
+                        .text('Consejo: puedes volver a mostrar estos controles desde el popup o con el atajo de ajustes.')
+                );
+
+            this.$colorPreview = this.$panel.find('.guideLinr-settings-color-preview');
+            this.$colorPicker = this.$panel.find('.guideLinr-settings-color-picker');
+            this.$colorText = this.$panel.find('.guideLinr-settings-color-text');
+            this.applyLauncherPosition( this.getDefaultLauncherPosition() );
+        }
+        , bindEvents: function() {
+            this._toggleClick = this.toggleClick.bind(this);
+            this._toggleMouseDown = this.toggleMouseDown.bind(this);
+            this._panelPointerDown = function(ev) {
+                ev.stopPropagation();
+            };
+            this._documentPointerDown = this.handleDocumentPointerDown.bind(this);
+            this._windowResize = this.handleWindowResize.bind(this);
+            this._storageChanged = this.handleStorageChanged.bind(this);
+            this._deleteModeChanged = this.handleDeleteModeChanged.bind(this);
+
+            this.$toggle
+                .on( 'click', this._toggleClick )
+                .on( 'mousedown', this._toggleMouseDown );
+
+            this.$panel.on( 'mousedown click', this._panelPointerDown );
+            this.$panel.on( 'change', '[data-setting]', this.handleControlChange.bind(this) );
+            this.$panel.on( 'click', '[data-action]', this.handleActionClick.bind(this) );
+            this.$panel.on( 'click', '.guideLinr-settings-swatch', this.handleSwatchClick.bind(this) );
+            this.$colorPicker.on( 'input change', this.handleColorPickerChange.bind(this) );
+            this.$colorText
+                .on( 'input', this.handleColorTextInput.bind(this) )
+                .on( 'change blur', this.handleColorTextCommit.bind(this) )
+                .on( 'keydown', function( ev ) {
+                    if ( ev.keyCode == 13 ) {
+                        ev.preventDefault();
+                        this.handleColorTextCommit( ev );
+                    }
+                }.bind(this));
+
+            $(document).on( 'mousedown', this._documentPointerDown );
+            $(window).on( 'resize', this._windowResize );
+            $(document.body).on( 'guideLinrDeleteModeChanged', this._deleteModeChanged );
+            chrome.storage.onChanged.addListener( this._storageChanged );
+        }
+        , buildPresetSwatches: function() {
+            return $.map( presetColors, function( preset ) {
+                return $('<button type="button">')
+                    .addClass('guideLinr-settings-swatch')
+                    .attr({
+                        'data-color': preset.value
+                        , 'title': preset.name + ' · ' + preset.value
+                    })
+                    .css( 'background-color', preset.value )[0];
+            });
+        }
+        , loadSettings: function() {
+            chrome.storage.local.get( defaultSettings, function( storedSettings ) {
+                var payload = {};
+
+                if ( storedSettings.selectedColorVersion !== COLOR_VERSION ) {
+                    payload.selectedColorVersion = COLOR_VERSION;
+                    if (
+                        !storedSettings.selectedColor
+                        || String(storedSettings.selectedColor).toLowerCase() == LEGACY_DEFAULT_COLOR
+                        || String(storedSettings.selectedColor).toLowerCase() == 'rgb(132, 204, 22)'
+                    )
+                        payload.selectedColor = defaultSettings.selectedColor;
+
+                    chrome.storage.local.set( payload );
+                    storedSettings = $.extend( {}, storedSettings, payload );
+                }
+
+                this.applySettings( storedSettings );
+            }.bind(this) );
+        }
+        , applySettings: function( nextSettings ) {
+            this.settings = $.extend( {}, this.settings, nextSettings );
+            this.settings.selectedColor = normalizeCssColor( this.settings.selectedColor );
+
+            lines.setSnap( this.settings.snapToPx );
+            lines.setSnapEls( this.settings.snapToEls );
+
+            if ( this.settings.showDistances )
+                distances.activate();
+            else
+                distances.deactivate();
+
+            if ( this.settings.doContextMenu )
+                contextMenu.activate();
+            else
+                contextMenu.deactivate();
+
+            this.renderState();
+        }
+        , updateColorPreview: function( color, isValid ) {
+            this.$colorPreview.css( 'background-color', isValid ? normalizeCssColor(color) : 'transparent' );
+            this.$colorText.toggleClass( 'invalid', !isValid );
+        }
+        , renderState: function() {
+            this.$panel.find('[data-setting="showDistances"]').prop( 'checked', !!this.settings.showDistances );
+            this.$panel.find('[data-setting="doContextMenu"]').prop( 'checked', !!this.settings.doContextMenu );
+            this.$panel.find('[data-setting="snapToPx"]').val( this.settings.snapToPx || '' );
+            this.$panel.find('[data-setting="snapToEls"]').val( this.settings.snapToEls || '' );
+            this.$colorPicker.val( colorToHex( this.settings.selectedColor ) );
+            this.$colorText.val( this.settings.selectedColor );
+            this.updateColorPreview( this.settings.selectedColor, true );
+            this.$panel.find('.guideLinr-settings-swatch').removeClass('active').filter(function() {
+                return $(this).data('color') == colorToHex( normalizeCssColor( this.settings.selectedColor ) );
+            }.bind(this)).addClass('active');
+            this.renderDeleteModeState();
+
+            this.applyLauncherPosition(
+                this.settings.settingsLauncherPosition
+                || this.getDefaultLauncherPosition()
+            );
+        }
+        , persistSetting: function( key, value ) {
+            var payload = {};
+            payload[key] = value;
+            this.applySettings( payload );
+            chrome.storage.local.set( payload );
+        }
+        , applySelectedColor: function( color ) {
+            if ( !isValidCssColor( color ) )
+                return false;
+
+            this.persistSetting( 'selectedColor', normalizeCssColor( color ) );
+            return true;
+        }
+        , handleControlChange: function( ev ) {
+            var $target = $(ev.target)
+                , setting = $target.data('setting')
+                , value;
+
+            if ( setting == 'showDistances' || setting == 'doContextMenu' )
+                value = !!ev.target.checked;
+            else
+                value = $target.val();
+
+            this.persistSetting( setting, value );
+        }
+        , handleSwatchClick: function( ev ) {
+            this.applySelectedColor( $(ev.currentTarget).data('color') );
+        }
+        , handleColorPickerChange: function( ev ) {
+            this.applySelectedColor( ev.target.value );
+        }
+        , handleColorTextInput: function( ev ) {
+            var value = $(ev.target).val();
+            this.updateColorPreview( value, isValidCssColor( value ) );
+        }
+        , handleColorTextCommit: function( ev ) {
+            var value = $(ev.target).val();
+            if ( !value )
+                value = defaultSettings.selectedColor;
+
+            if ( !this.applySelectedColor( value ) )
+                this.renderState();
+        }
+        , handleActionClick: function( ev ) {
+            var action = $(ev.currentTarget).data('action');
+
+            if ( action == 'add-vert' )
+                return new line({
+                    color: this.settings.selectedColor
+                    , dir: 'vert'
+                }).focusTo();
+
+            if ( action == 'add-horz' )
+                return new line({
+                    color: this.settings.selectedColor
+                    , dir: 'horz'
+                }).focusTo();
+
+            if ( action == 'clear-guides' )
+                return clearGuidesByDirection();
+
+            if ( action == 'clear-vert' )
+                return clearGuidesByDirection( 'vert' );
+
+            if ( action == 'clear-horz' )
+                return clearGuidesByDirection( 'horz' );
+
+            if ( action == 'toggle-delete-mode' ) {
+                deleteMode.toggle();
+                return this.renderDeleteModeState();
+            }
+
+            if ( action == 'toggle-help' )
+                return this.$help.toggleClass('open');
+
+            if ( action == 'hide-widget' )
+                return this.hideLauncher();
+        }
+        , renderDeleteModeState: function() {
+            this.$panel
+                .find('.guideLinr-settings-delete-toggle')
+                .toggleClass( 'active', deleteMode.isActive() )
+                .text( deleteMode.isActive() ? 'Cancelar borrado' : 'Borrar una guía' );
+        }
+        , clamp: function( value, min, max ) {
+            return Math.max( min, Math.min( value, max ) );
+        }
+        , getDefaultLauncherPosition: function() {
+            return {
+                top: 16
+                , left: Math.max( 16, window.innerWidth - 72 )
+            };
+        }
+        , normalizeLauncherPosition: function( position ) {
+            position = position || this.getDefaultLauncherPosition();
+            return {
+                top: this.clamp( parseInt(position.top, 10) || 16, 12, Math.max( 12, window.innerHeight - 56 ) )
+                , left: this.clamp( parseInt(position.left, 10) || 16, 12, Math.max( 12, window.innerWidth - 56 ) )
+            };
+        }
+        , applyLauncherPosition: function( position ) {
+            this.settings.settingsLauncherPosition = this.normalizeLauncherPosition( position );
+            this.$toggle.css({
+                top: this.settings.settingsLauncherPosition.top + 'px'
+                , left: this.settings.settingsLauncherPosition.left + 'px'
+            });
+
+            if ( this.visible && this.$panel.hasClass('open') )
+                this.positionPanel();
+        }
+        , positionPanel: function() {
+            var rect = this.$toggle[0].getBoundingClientRect()
+                , panelWidth = this.$panel.outerWidth()
+                , panelHeight = this.$panel.outerHeight()
+                , left = this.clamp(
+                    rect.right - panelWidth
+                    , 12
+                    , window.innerWidth - panelWidth - 12
+                )
+                , top = rect.bottom + 12;
+
+            if ( top + panelHeight > window.innerHeight - 12 )
+                top = rect.top - panelHeight - 12;
+
+            top = this.clamp(
+                top
+                , 12
+                , window.innerHeight - panelHeight - 12
+            );
+
+            this.$panel.css({
+                top: top + 'px'
+                , left: left + 'px'
+            });
+        }
+        , setVisible: function( isVisible ) {
+            this.visible = !!isVisible;
+            this._.toggleClass( 'hidden', !this.visible );
+            if ( !this.visible ) {
+                this.closePanel();
+                this.$help.removeClass('open');
+            }
+        }
+        , showLauncher: function( openPanel ) {
+            this.setVisible( true );
+            this.applyLauncherPosition( this.settings.settingsLauncherPosition || this.getDefaultLauncherPosition() );
+            if ( openPanel === false )
+                return;
+            this.openPanel();
+        }
+        , hideLauncher: function() {
+            this.setVisible( false );
+        }
+        , toggleLauncher: function() {
+            if ( this.visible )
+                this.hideLauncher();
+            else
+                this.showLauncher( true );
+        }
+        , openPanel: function() {
+            this.showLauncher( false );
+            this.positionPanel();
+            this.$panel.addClass('open');
+        }
+        , closePanel: function() {
+            this.$panel.removeClass('open');
+        }
+        , toggleClick: function( ev ) {
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            if ( this._suppressToggleClick ) {
+                this._suppressToggleClick = false;
+                return;
+            }
+
+            if ( this.$panel.hasClass('open') )
+                this.closePanel();
+            else
+                this.openPanel();
+        }
+        , toggleMouseDown: function( ev ) {
+            if ( ev.which != 1 )
+                return;
+
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            this._dragState = {
+                startX: ev.clientX
+                , startY: ev.clientY
+                , origin: $.extend( {}, this.settings.settingsLauncherPosition || this.getDefaultLauncherPosition() )
+                , dragging: false
+            };
+
+            this._dragMove = this.handleDragMove.bind(this);
+            this._dragUp = this.handleDragUp.bind(this);
+
+            $(document)
+                .on( 'mousemove', this._dragMove )
+                .on( 'mouseup', this._dragUp );
+        }
+        , handleDragMove: function( ev ) {
+            if ( !this._dragState )
+                return;
+
+            var nextLeft = this._dragState.origin.left + ( ev.clientX - this._dragState.startX )
+                , nextTop = this._dragState.origin.top + ( ev.clientY - this._dragState.startY );
+
+            if (
+                !this._dragState.dragging
+                && ( Math.abs( ev.clientX - this._dragState.startX ) > 3 || Math.abs( ev.clientY - this._dragState.startY ) > 3 )
+            )
+                this._dragState.dragging = true;
+
+            if ( this._dragState.dragging )
+                this.applyLauncherPosition({
+                    top: nextTop
+                    , left: nextLeft
+                });
+        }
+        , handleDragUp: function() {
+            $(document)
+                .off( 'mousemove', this._dragMove )
+                .off( 'mouseup', this._dragUp );
+
+            if ( this._dragState && this._dragState.dragging ) {
+                this._suppressToggleClick = true;
+                this.persistSetting( 'settingsLauncherPosition', this.settings.settingsLauncherPosition );
+            }
+
+            delete this._dragMove;
+            delete this._dragUp;
+            delete this._dragState;
+        }
+        , handleDocumentPointerDown: function( ev ) {
+            if ( !this.visible )
+                return;
+
+            if ( $(ev.target).closest('.guideLinr-settings-root').length )
+                return;
+
+            this.closePanel();
+            this.$help.removeClass('open');
+        }
+        , handleWindowResize: function() {
+            this.applyLauncherPosition( this.settings.settingsLauncherPosition || this.getDefaultLauncherPosition() );
+        }
+        , handleDeleteModeChanged: function( ev, isActive ) {
+            this.renderDeleteModeState();
+            if ( isActive )
+                this.openPanel();
+        }
+        , handleStorageChanged: function( changes, areaName ) {
+            if ( areaName != 'local' )
+                return;
+
+            var nextSettings = {};
+            $.each( defaultSettings, function( key ) {
+                if ( changes[key] )
+                    nextSettings[key] = changes[key].newValue;
+            });
+
+            if ( Object.keys( nextSettings ).length )
+                this.applySettings( nextSettings );
+        }
+    }).init();
+
+    var keyboardShortcuts = ({
+        init: function() {
+            this._onKeyDown = this.onKeyDown.bind(this);
+            $(document).on( 'keydown', this._onKeyDown );
+            return this;
+        }
+        , isTypingTarget: function( target ) {
+            var $target = $(target);
+            return $target.is('input, textarea, select') || !!$target.prop('isContentEditable') || $target.closest('[contenteditable=\"true\"]').length;
+        }
+        , matches: function( ev, key ) {
+            return ev.altKey && ev.shiftKey && !ev.ctrlKey && !ev.metaKey && String.fromCharCode(ev.which || ev.keyCode).toUpperCase() == key;
+        }
+        , onKeyDown: function( ev ) {
+            if ( this.isTypingTarget( ev.target ) )
+                return;
+
+            if ( this.matches( ev, 'I' ) ) {
+                ev.preventDefault();
+                return clearGuidesByDirection( 'vert' );
+            }
+
+            if ( this.matches( ev, 'L' ) ) {
+                ev.preventDefault();
+                return clearGuidesByDirection( 'horz' );
+            }
+
+            if ( this.matches( ev, 'D' ) ) {
+                ev.preventDefault();
+                deleteMode.toggle();
+                return settingsUi.renderDeleteModeState();
+            }
         }
     }).init();
     
@@ -922,9 +1642,7 @@
                 );
             }
             , clearAllGuides: function() {
-                lines.withAll(function(line) {
-                    line.destroy();
-                });
+                clearGuidesByDirection();
             }
             , activateDistances: function() {
                 distances.activate();
@@ -964,6 +1682,18 @@
             }
             , contextmenuleft: function() {
                 contextMenu.addGuideByElement( request.color, false, false, false, true );
+            }
+            , toggleSettingsPanel: function() {
+                settingsUi.toggleLauncher();
+            }
+            , clearVerticalGuides: function() {
+                clearGuidesByDirection( 'vert' );
+            }
+            , clearHorizontalGuides: function() {
+                clearGuidesByDirection( 'horz' );
+            }
+            , toggleDeleteMode: function() {
+                deleteMode.toggle();
             }
         };
         

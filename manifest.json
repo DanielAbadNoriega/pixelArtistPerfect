@@ -33,8 +33,48 @@
     "tabs",
     "scripting",
     "activeTab",
-    "contextMenus"
+    "contextMenus",
+    "storage"
   ],
+  "commands": {
+    "add-horizontal-guide": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+H",
+        "mac": "Alt+Shift+H"
+      },
+      "description": "Create a horizontal guide"
+    },
+    "add-vertical-guide": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+V",
+        "mac": "Alt+Shift+V"
+      },
+      "description": "Create a vertical guide"
+    },
+    "toggle-settings-panel": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "Alt+Shift+P"
+      },
+      "description": "Toggle the floating settings panel"
+    },
+    "clear-all-guides": {
+      "suggested_key": {
+        "default": "Alt+Shift+X",
+        "mac": "Option+Shift+X"
+      },
+      "description": "Clear every guide on the current page"
+    },
+    "clear-vertical-guides": {
+      "description": "Clear all vertical guides on the current page"
+    },
+    "clear-horizontal-guides": {
+      "description": "Clear all horizontal guides on the current page"
+    },
+    "toggle-delete-mode": {
+      "description": "Toggle delete mode to remove one guide"
+    }
+  },
   "host_permissions": [
     "http://*/*",
     "https://*/*"

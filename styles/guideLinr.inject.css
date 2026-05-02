@@ -4,17 +4,23 @@
     overflow: hidden;
     z-index: 999999998;
     outline: none;
+    color: #ef4444;
     -webkit-transition: box-shadow 0.3s ease;
     transition: box-shadow 0.3s ease;
 }
 .guideLinr-line:after {
     content: ' ';
     position: absolute;
+    border-color: currentColor;
+    filter: drop-shadow(0 0 3px rgba(15, 23, 42, 0.28));
     -webkit-transition: box-shadow 0.3s ease;
-    transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease, filter 0.3s ease;
 }
 .guideLinr-line:hover:after, .guideLinr-line.glow:after {
-    box-shadow: 0px 0px 10px 0px lime;
+    box-shadow: 0px 0px 10px 0px currentColor;
+    filter:
+        drop-shadow(0 0 3px rgba(15, 23, 42, 0.3))
+        drop-shadow(0 0 8px currentColor);
 }
 
 /* #### VERTICAL #### */
@@ -29,7 +35,7 @@
     width: 0;
     left: 49.5%;
     height: 100%;
-    border-left: 1px solid lime;
+    border-left: 1px solid currentColor;
 }
 
 /* #### HORIZONTAL #### */
@@ -44,7 +50,7 @@
     height: 0;
     top: 49.5%;
     width: 100%;
-    border-top: 1px solid lime;
+    border-top: 1px solid currentColor;
 }
 
 
@@ -250,4 +256,286 @@
 .guideLinr-element-highlight {
     outline: 2px solid lightgreen !important;
     box-shadow: 0px 0px 5px 3px lightgreen !important;
+}
+
+.guideLinr-settings-root {
+    position: fixed;
+    z-index: 999999999;
+}
+.guideLinr-settings-root.hidden {
+    display: none;
+}
+.guideLinr-settings-toggle,
+.guideLinr-settings-panel {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.guideLinr-settings-toggle {
+    position: fixed;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    color: #f8fafc;
+    text-shadow: 1px 1px 2px black;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.guideLinr-settings-toggle:hover {
+    transform: scale(1.04);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+}
+.guideLinr-settings-toggle:active {
+    cursor: grabbing;
+}
+.guideLinr-settings-toggle-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+.guideLinr-settings-panel {
+    position: fixed;
+    width: 320px;
+    max-width: calc(100vw - 24px);
+    padding: 14px;
+    border-radius: 18px;
+    color: #f8fafc;
+    font-family: Verdana, Helvetica, Arial, sans-serif;
+    text-shadow: 1px 1px 2px black;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px) scale(0.98);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.guideLinr-settings-panel.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+.guideLinr-settings-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.guideLinr-settings-header-actions {
+    display: flex;
+    gap: 8px;
+}
+.guideLinr-settings-icon-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(15, 23, 42, 0.28);
+    color: #f8fafc;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    text-shadow: 1px 1px 2px black;
+}
+.guideLinr-settings-icon-button:hover {
+    background: rgba(15, 23, 42, 0.42);
+}
+.guideLinr-settings-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+.guideLinr-settings-subtitle {
+    font-size: 11px;
+    opacity: 0.9;
+}
+.guideLinr-settings-field {
+    display: block;
+    margin-bottom: 10px;
+}
+.guideLinr-settings-field > span {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.guideLinr-settings-field.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.guideLinr-settings-field.checkbox > span {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+.guideLinr-settings-help {
+    display: none;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    font-size: 11px;
+    line-height: 1.45;
+}
+.guideLinr-settings-help.open {
+    display: block;
+}
+.guideLinr-settings-help p {
+    margin: 0 0 8px;
+}
+.guideLinr-settings-help p:last-child {
+    margin-bottom: 0;
+}
+.guideLinr-settings-help code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 10px;
+}
+.guideLinr-settings-field select,
+.guideLinr-settings-clear,
+.guideLinr-settings-actions button,
+.guideLinr-settings-color-picker,
+.guideLinr-settings-color-text {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(15, 23, 42, 0.32);
+    color: #f8fafc;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-family: inherit;
+}
+.guideLinr-settings-field select:focus,
+.guideLinr-settings-clear:focus,
+.guideLinr-settings-actions button:focus,
+.guideLinr-settings-color-picker:focus,
+.guideLinr-settings-color-text:focus {
+    outline: 2px solid rgba(96, 165, 250, 0.75);
+    outline-offset: 1px;
+}
+.guideLinr-settings-color-controls {
+    display: grid;
+    gap: 8px;
+}
+.guideLinr-settings-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.guideLinr-settings-swatch {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 10px rgba(15, 23, 42, 0.18);
+}
+.guideLinr-settings-swatch:hover {
+    transform: translateY(-1px);
+}
+.guideLinr-settings-swatch.active {
+    border-color: rgba(255, 255, 255, 0.48);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.22),
+        0 10px 18px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+}
+.guideLinr-settings-color-picker {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 4px;
+    cursor: pointer;
+}
+.guideLinr-settings-color-text.invalid {
+    border-color: rgba(248, 113, 113, 0.72);
+}
+.guideLinr-settings-color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.guideLinr-settings-color-preview {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background-color: #ef4444;
+    flex: 0 0 auto;
+}
+.guideLinr-settings-color-preview.aqua { background-color: aqua; }
+.guideLinr-settings-color-preview.blue { background-color: blue; }
+.guideLinr-settings-color-preview.green { background-color: green; }
+.guideLinr-settings-color-preview.yellow { background-color: yellow; }
+.guideLinr-settings-color-preview.orange { background-color: orange; }
+.guideLinr-settings-color-preview.red { background-color: red; }
+.guideLinr-settings-color-preview.pink { background-color: hotpink; }
+.guideLinr-settings-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 12px 0 8px;
+}
+.guideLinr-settings-actions button,
+.guideLinr-settings-clear {
+    cursor: pointer;
+    text-shadow: 1px 1px 2px black;
+}
+.guideLinr-settings-actions button.active {
+    background: rgba(239, 68, 68, 0.38);
+    border-color: rgba(248, 113, 113, 0.55);
+}
+.guideLinr-settings-button-danger {
+    background: rgba(239, 68, 68, 0.24) !important;
+}
+.guideLinr-settings-shortcuts {
+    margin-top: 10px;
+    font-size: 11px;
+    opacity: 0.92;
+}
+
+.guideLinr-icon.custom-color {
+    border-radius: 999px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.guideLinr-dialog-color-picker {
+    display: block;
+    width: calc(100% - 12px);
+    margin: 6px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.guideLinr-delete-mode .guideLinr-line {
+    cursor: crosshair;
+}
+.guideLinr-delete-mode .guideLinr-line:after {
+    filter:
+        drop-shadow(0 0 3px rgba(15, 23, 42, 0.3))
+        drop-shadow(0 0 8px rgba(248, 113, 113, 0.65));
+}
+.guideLinr-delete-badge {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000000001;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #f8fafc;
+    text-shadow: 1px 1px 2px black;
+    font: 600 11px/1.2 Verdana, Helvetica, Arial, sans-serif;
 }

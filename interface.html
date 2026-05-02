@@ -2,92 +2,119 @@
 <html>
     <head>
         <title>PixelFromen Studio</title>
+        <meta charset="utf-8">
         <script type='text/javascript' src='scripts/jquery-1.10.2.min.js'></script>
         <script type='text/javascript' src='scripts/guideLinr.interface.js'></script>
         <link rel='stylesheet' media='all' href='styles/guideLinr.interface.css'>
     </head>
     <body>
-        <h1>
-            PixelFromen Studio
-        </h1>
+        <main class="popup-shell">
+            <header class="popup-header">
+                <div>
+                    <div class="popup-eyebrow">PixelFromen Studio</div>
+                    <h1>Guías pixel-perfect</h1>
+                    <p>Crea, ajusta y limpia guías sobre cualquier página sin salir del navegador.</p>
+                </div>
+                <button type="button" id="toggleInfo" class="popup-icon-button" title="Información importante">i</button>
+            </header>
 
-        <h3>
-            Pixel-perfect guides for any page
-        </h3>
+            <section id="infoPanel" class="popup-info hidden">
+                <div class="popup-info-block">
+                    <h2>Atajos</h2>
+                    <ul id="commandList" class="command-list"></ul>
+                    <p class="popup-note">Atajos rápidos sobre la página: <strong>Alt/Option + Shift + I</strong> limpia verticales, <strong>+ L</strong> limpia horizontales y <strong>+ D</strong> activa el modo borrar una guía.</p>
+                    <p class="popup-note">Los atajos sin asignar los puedes configurar en <code>chrome://extensions/shortcuts</code>.</p>
+                </div>
+                <div class="popup-info-block">
+                    <h2>Qué hace cada opción</h2>
+                    <ul class="popup-copy-list">
+                        <li><strong>Menú contextual</strong>: agrega acciones al clic derecho para crear guías alrededor del elemento bajo el cursor.</li>
+                        <li><strong>Ajustar a retícula</strong>: mueve las guías en saltos fijos de píxeles.</li>
+                        <li><strong>Imantar a bordes</strong>: al arrastrar, la guía se pega al borde más cercano si entras en el rango elegido.</li>
+                        <li><strong>Editar distancias</strong>: haz clic en la medición sobre la página y escribe el nuevo valor en px.</li>
+                    </ul>
+                </div>
+            </section>
 
-        <hr>
+            <section class="popup-card">
+                <div class="popup-card-head">
+                    <h2>Color de guía</h2>
+                    <p>Elige un preset o escribe HEX / RGB como en DevTools.</p>
+                </div>
+                <div id="colorSwatches" class="popup-swatches"></div>
+                <div class="popup-color-row">
+                    <input type="color" id="guide_color_picker" class="popup-color-picker">
+                    <input type="text" id="guide_color_text" class="popup-color-text" placeholder="#ef4444 o rgb(239, 68, 68)">
+                    <span class="color_preview" aria-hidden="true"></span>
+                </div>
+            </section>
 
-        <p class='hint'>
-            Click any distance label on the page to type a new pixel value. Vertical distances move the guide on the right; horizontal distances move the guide below.
-        </p>
+            <section class="popup-card">
+                <div class="popup-card-head">
+                    <h2>Comportamiento</h2>
+                    <p>Define cómo se muestran y se mueven las guías.</p>
+                </div>
 
-        <div class='row'>
-            <input type='checkbox' id='show_distances'>
-            <label for='show_distances'>
-                Show distance between guides?
-            </label>
-        </div>
+                <label class="popup-check-row">
+                    <input type='checkbox' id='show_distances'>
+                    <span>
+                        <strong>Mostrar distancias entre guías</strong>
+                        <small>Las cajas de medición aparecen activas desde el inicio.</small>
+                    </span>
+                </label>
 
-        <div class='row'>
-            <input type='checkbox' id='context_menu'>
-            <label for='context_menu'>
-                Use context menu entries?
-            </label>
-        </div>
+                <label class="popup-check-row">
+                    <input type='checkbox' id='context_menu'>
+                    <span>
+                        <strong>Activar menú contextual</strong>
+                        <small>Añade acciones al clic derecho para crear guías rápidas.</small>
+                    </span>
+                </label>
 
-        <div class='row'>
-            Snap guides to grid:
-            <select id='snap_to_px'>
-                <option value=''>No</option>
-                <option value='5'>5px</option>
-                <option value='10'>10px</option>
-                <option value='15'>15px</option>
-                <option value='20'>20px</option>
-                <option value='25'>25px</option>
-                <option value='50'>50px</option>
-                <option value='100'>100px</option>
-            </select>
-        </div>
+                <div class="popup-field-grid">
+                    <label class="popup-select-field">
+                        <span>Ajustar a retícula</span>
+                        <select id='snap_to_px'>
+                            <option value=''>No</option>
+                            <option value='5'>5px</option>
+                            <option value='10'>10px</option>
+                            <option value='15'>15px</option>
+                            <option value='20'>20px</option>
+                            <option value='25'>25px</option>
+                            <option value='50'>50px</option>
+                            <option value='100'>100px</option>
+                        </select>
+                    </label>
 
-        <div class='row'>
-            Snap guides to edges when dragging:
-            <select id='snap_to_els'>
-                <option value=''>No</option>
-                <option value='5'>5px</option>
-                <option value='10'>10px</option>
-                <option value='15'>15px</option>
-                <option value='20'>20px</option>
-            </select>
-        </div>
+                    <label class="popup-select-field">
+                        <span>Imantar a bordes</span>
+                        <select id='snap_to_els'>
+                            <option value=''>No</option>
+                            <option value='5'>5px</option>
+                            <option value='10'>10px</option>
+                            <option value='15'>15px</option>
+                            <option value='20'>20px</option>
+                        </select>
+                    </label>
+                </div>
+            </section>
 
-        <div class='row'>
-            Add Guide:
-            <select id='guide_color'>
-                <option value='lime'>Lime</option>
-                <option value='aqua'>Aqua</option>
-                <option value='blue'>Blue</option>
-                <option value='green'>Green</option>
-                <option value='yellow'>Yellow</option>
-                <option value='orange'>Orange</option>
-                <option value='red'>Red</option>
-                <option value='pink'>Pink</option>
-            </select>
-            <div class='color_preview'>&nbsp;</div>
-            <button type='button' id='addGuideLineVert'>Vertical</button>
-            <button type='button' id='addGuideLineHorz'>Horizontal</button>
-        </div>
-        <!--
-            <div class='row'>
-                <button type='button' id='saveGuideLayout'>Save Guide Layout</button>
-                <br>
-                <select id='guide_layouts'>
-                    <option value=''>Select Guide layout</option>
-                </select>
-                <button type='button' id='loadGuideLayout'>Load Guide Layout</button>
-            </div>
-        -->
+            <section class="popup-card">
+                <div class="popup-card-head">
+                    <h2>Acciones rápidas</h2>
+                    <p>Controla la página sin depender del popup clásico antiguo.</p>
+                </div>
 
-        <button type='button' id='clearGuideLines'>Clear Page</button>
-
+                <div class="popup-actions-grid">
+                    <button type='button' id='openFloatingControls' class="popup-button">Mostrar / ocultar rueda flotante</button>
+                    <button type='button' id='toggleDeleteMode' class="popup-button">Borrar una guía</button>
+                    <button type='button' id='addGuideLineVert' class="popup-button popup-button-primary">Añadir vertical</button>
+                    <button type='button' id='addGuideLineHorz' class="popup-button popup-button-primary">Añadir horizontal</button>
+                    <button type='button' id='clearGuideLines' class="popup-button popup-button-danger">Limpiar página</button>
+                    <button type='button' id='clearGuideLinesVert' class="popup-button">Limpiar verticales</button>
+                    <button type='button' id='clearGuideLinesHorz' class="popup-button">Limpiar horizontales</button>
+                </div>
+            </section>
+        </main>
     </body>
 </html>
