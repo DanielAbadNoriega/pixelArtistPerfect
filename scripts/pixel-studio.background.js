@@ -119,10 +119,9 @@
             delete pageGuides[guideId];
             guidesStore[normalizedUrl] = pageGuides;
             await setGuidesStore( guidesStore );
-            return true;
         }
 
-        return false;
+        return true;
     };
 
     var removeGuides = async function( url, guideIds ) {

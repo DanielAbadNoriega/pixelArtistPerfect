@@ -127,6 +127,14 @@
         register: function( line ) {
             if ( !this.list  )
                 this.list = {};
+
+            var existing = this.list[line._id];
+            if ( existing && existing !== line )
+                existing.destroy({
+                    skipStorage: true
+                    , immediate: true
+                });
+
             this.list[line._id] = line;
             log( 'lines.register()', line._id, this.list );
         }
