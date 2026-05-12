@@ -929,6 +929,14 @@
     font-size: 11px;
     opacity: 0.92;
 }
+.pixelStudio-settings-credit {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    font-size: 11px;
+    text-align: center;
+    opacity: 0.82;
+}
 
 .pixelStudio-dialog-color-picker {
     position: absolute;

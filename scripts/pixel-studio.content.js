@@ -1927,6 +1927,9 @@
                     , $('<div>')
                         .addClass('pixelStudio-settings-shortcuts')
                         .text('Consejo: puedes volver a mostrar estos controles desde el popup o con el atajo de ajustes.')
+                    , $('<div>')
+                        .addClass('pixelStudio-settings-credit')
+                        .text('PixelFromen Studio · © Daniel Abad Noriega')
                 );
 
             this.$colorPreview = this.$panel.find('.pixelStudio-settings-color-preview');
