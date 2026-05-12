@@ -54,6 +54,7 @@
     "toggle-settings-panel": {
       "suggested_key": {
         "default": "Ctrl+Shift+P",
+        "windows": "Ctrl+Shift+Y",
         "mac": "Alt+Shift+P"
       },
       "description": "Toggle the floating settings panel"

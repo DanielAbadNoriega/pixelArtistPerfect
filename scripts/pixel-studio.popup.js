@@ -30,7 +30,8 @@ $(function() {
 
     var isMac = /Mac/i.test( navigator.platform || '' );
     var commandRecommendations = {
-        'clear-vertical-guides': isMac ? 'Option+Shift+I' : 'Alt+Shift+I'
+        'toggle-settings-panel': isMac ? 'Alt+Shift+P' : 'Ctrl+Shift+Y'
+        , 'clear-vertical-guides': isMac ? 'Option+Shift+I' : 'Alt+Shift+I'
         , 'clear-horizontal-guides': isMac ? 'Option+Shift+L' : 'Alt+Shift+L'
         , 'toggle-delete-mode': isMac ? 'Option+Shift+D' : 'Alt+Shift+D'
     };
