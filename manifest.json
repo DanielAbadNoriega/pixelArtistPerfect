@@ -4,7 +4,11 @@
   "version": "1.1.0",
   "description": "Pixel-perfect layout guides for any page",
   "action": {
-    "default_icon": "images/16.png",
+    "default_icon": {
+      "16": "images/16.png",
+      "24": "images/24.png",
+      "32": "images/32.png"
+    },
     "default_popup": "interface.html",
     "default_title": "PixelFromen Studio"
   },
